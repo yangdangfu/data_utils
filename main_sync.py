@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # Try to run at 01:30 every day
     # schedule.every().day.at("01:30:00").do(sync, sync_info_csv=csv)
     # schedule.every().day.at("01:30:00").do(sync, sync_info_csv=csv)
-    schedule.every().hour.do(sync, sync_info_csv=csv)
+    schedule.every(1).minutes.do(sync, sync_info_csv=csv)
 
     while True:
         schedule.run_pending()
