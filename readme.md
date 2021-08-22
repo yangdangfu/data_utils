@@ -48,7 +48,7 @@ host,user,passwd,cwd,local_root,file_reg
 See an example in [default.csv](default.csv)
 
 More details can be read in the python script's docstring
-[python script](ftp_downloader.py)
+[ftp_downloader.py](ftp_downloader.py)
 
 ***A CSV example***
 A CSV file is essentially a table, the following table is a real example that download FTP files from FTP server `ftp2.psl.noaa.gov`, assume the table is stored in a CSV file `example.csv`
