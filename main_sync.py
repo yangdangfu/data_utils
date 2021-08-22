@@ -43,7 +43,9 @@ def sync(sync_info_csv: str):
         except KeyboardInterrupt:
             break  # stop the download if the `ctrl+c` is pressed
         except:
-            print(f"Something wrong!")
+            print(
+                f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Something wrong!"
+            )
 
 
 if __name__ == "__main__":
