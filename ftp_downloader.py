@@ -142,7 +142,7 @@ class FTPDownloader:
                                        open(filepath, "wb").write)
                         stop = timeit.default_timer()
                         print(
-                            f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Time used {stop - start:.0f}s for downloading file"
+                            f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Time used {stop - start:.0f}s for downloading file {file}"
                         )
                     except KeyboardInterrupt:
                         break  # stop the download if the `ctrl+c` is pressed
