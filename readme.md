@@ -10,9 +10,7 @@ A data utility that will include the functions such as data download & upload & 
 
 ## Download
 
-### How to use
-
-#### Automatic file download
+### Automatic file download
 
 ***Example***
 Run 
@@ -21,7 +19,7 @@ Run
 python main_sync.py
 ```
 
-to sync files from FTP server to local directory using the information provided in file `default.csv`. About the CSV file, the user can refer to [About the CSV file](#csv) for more. 
+to sync files from FTP server to local directory using the information provided in file `default.csv`. About the CSV file, the user can refer to [About the CSV file](#csv) for more details. 
 
 ---
 
@@ -51,6 +49,22 @@ See an example in [default.csv](default.csv)
 
 More details can be read in the python script's docstring
 [python script](ftp_downloader.py)
+
+***An CSV example***
+A CSV file is essentially a table, the following table is a real example that download FTP files from FTP server `ftp2.psl.noaa.gov`, assume the table is stored in a CSV file `example.csv`
+
+| host              | user | passwd | cwd                                         | local_root                     | file_reg         |
+| ----------------- | ---- | ------ | ------------------------------------------- | ------------------------------ | ---------------- |
+| ftp2.psl.noaa.gov |      |        | Datasets/ncep.reanalysis.dailyavgs/pressure | /DATA/CPS_Data/ncep_reanalysis | ^air\.\d{4}\.nc$ |
+| ftp2.psl.noaa.gov |      |        | Datasets/ncep.reanalysis.dailyavgs/surface  | /DATA/CPS_Data/ncep_reanalysis | ^slp\.\d{4}\.nc$ |
+
+> **_Note_**: If the ftp file address is like `ftp://url.suburl.com/...` the FTP server host should be `url.suburl.com` without an `ftp://` prefix 
+
+The 1st row in the above table is used to download files from addresses that have a pattern `ftp://ftp2.psl.noaa.gov/Datasets/ncep.reanalysis.dailyavgs/pressure/air.{year}.nc`, where `year` is a 4 digits number such as 1979, 2020, etc. Instead the 2nd row in the table is to match the file addresses like `ftp://ftp2.psl.noaa.gov/Datasets/ncep.reanalysis.dailyavgs/surface/air.{year}.nc`. Our downloader (run `python main_sync.py example.csv`) will download all the matched files `air.{year}.nc` and `slp.{year}.nc` into the local directories `/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis.diilyavgs/pressure` and `/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis.diilyavgs/surface`, respectively.
+
+In some cases, the files in `cwd` can be divided into either several different rows using different `file_reg`s, or just one row using one more general `file_reg`. In real applications, the two choices would lead to same result, but the former may be faster since the downloader uses a multiprocess mechanism to handle different downloads in different rows in parellel. However, the real situation may be complex up to your local network speed and remote connection limit. 
+
+> Todo: Supports to close parallel or specify the number of parallel processes
 
 ## Upload
 (WIP)
