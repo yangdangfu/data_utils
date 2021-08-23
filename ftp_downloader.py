@@ -129,27 +129,27 @@ class FTPDownloader:
                         if sync_mode == "auto":
                             if os.stat(filepath).st_size == ftp.size(
                                     file):  # check if the file size is equal
-                                print(
-                                    f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} {filepath} already up to date."
-                                )
+                                # print(
+                                #     f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} {filepath} already up to date."
+                                # )
                                 continue
                     print(
                         f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Downloading file {file} to {filepath} ..."
                     )
-                    try:
-                        start = timeit.default_timer()
-                        ftp.retrbinary("RETR " + file,
-                                       open(filepath, "wb").write)
-                        stop = timeit.default_timer()
-                        print(
-                            f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Time used {stop - start:.0f}s for downloading file {file}"
-                        )
-                    except KeyboardInterrupt:
-                        break  # stop the download if the `ctrl+c` is pressed
-                    except:
-                        print(
-                            f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Failed to download file {file} to {filepath}"
-                        )
+                    # try:
+                    start = timeit.default_timer()
+                    ftp.retrbinary("RETR " + file, open(filepath, "wb").write)
+                    stop = timeit.default_timer()
+                    print(
+                        f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Time used {stop - start:.0f}s for downloading file {file}"
+                    )
+                    # except KeyboardInterrupt:
+                    #     return  # stop the download if the `ctrl+c` is pressed
+                    # except:
+                    #     print(
+                    #         f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Failed to download file {file} to {filepath}"
+                    #     )
+                    #     continue
 
 
 if __name__ == "__main__":

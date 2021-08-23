@@ -38,14 +38,7 @@ def sync(sync_info_csv: str):
     pools = [pool.apply_async(downloader.run) for downloader in downloaders]
     pool.close()
     for p in pools:
-        try:
-            p.get()
-        except KeyboardInterrupt:
-            break  # stop the download if the `ctrl+c` is pressed
-        except:
-            print(
-                f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Something wrong!"
-            )
+        p.get()
 
 
 if __name__ == "__main__":
@@ -62,12 +55,19 @@ if __name__ == "__main__":
     assert os.path.exists(csv), f"CSV file {csv} doesn't exist."
 
     # run the sync() for 1 time ahead
-    sync(sync_info_csv=csv)
+    # sync(sync_info_csv=csv)
     # Try to run at 01:30 every day
     # schedule.every().day.at("01:30:00").do(sync, sync_info_csv=csv)
     # schedule.every().day.at("01:30:00").do(sync, sync_info_csv=csv)
     schedule.every(1).minutes.do(sync, sync_info_csv=csv)
 
     while True:
-        schedule.run_pending()
-        time.sleep(10)
+        try:
+            schedule.run_pending()
+            time.sleep(10)
+        except KeyboardInterrupt:
+            break  # stop the download if the `ctrl+c` is pressed
+        except:
+            print(
+                f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Something wrong!"
+            )
