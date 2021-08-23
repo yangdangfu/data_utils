@@ -5,5 +5,5 @@ ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/
 ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^rhum\.\d{4}\.nc$
 ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^uwnd\.\d{4}\.nc$
 ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^vwnd\.\d{4}\.nc$
-ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/surface,/DATA/CPS_Data/ncep_reanalysis,^mlsp\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/surface,/DATA/CPS_Data/ncep_reanalysis,^mslp\.\d{4}\.nc$
 ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/surface,/DATA/CPS_Data/ncep_reanalysis,^pr_wtr\.eatm\.\d{4}\.nc$
