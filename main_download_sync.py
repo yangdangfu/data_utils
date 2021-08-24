@@ -107,7 +107,7 @@ def main(csv: Path = typer.Argument(..., help="CSV filepath"),
     while True:
         try:
             schedule.run_pending()
-            time.sleep(1)
+            time.sleep(3600)
         except KeyboardInterrupt:
             logging.exception("ctrl-c is pressed.")
             sys.exit()  # stop the program if the `ctrl+c` is pressed
