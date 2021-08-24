@@ -95,5 +95,7 @@ The data loading functions (including auxilary ones) are now implemented in the 
 - `read_rolled_cpc`: read rolled mean tmax/tmin/precip data from CPC global data
 
 - `month_select`: select data from `original_data` in dates of given `months`
+- `year_select`: select data from `original_data` in dates of given `years`
+- `spatial_cropping`: crop data from `original_data` within given latitude/longitude range
 
 More details about how to use these functions can be found in the docstring in the module.

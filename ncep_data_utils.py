@@ -12,12 +12,15 @@ Function lists:
 - `read_rolled_cpc`: read rolled mean tmax/tmin/precip data from CPC global data
 
 - `month_select`: select data from `original_data` in dates of given `months`
+- `year_select`: select data from `original_data` in dates of given `years`
+- `spatial_cropping`: crop data from `original_data` within given latitude/longitude range
 
 Notes:
 - `slp` variable in NCEP Reanalysis I is named `mslp` in NCEP Reanalysis II
 """
 import calendar
 from datetime import date
+from logging import warning
 from typing import Dict, List, Literal, Tuple, Union
 from dateutil.relativedelta import relativedelta
 
@@ -28,16 +31,12 @@ import warnings
 
 # ANCHOR configs
 _NCEP_ROOT = {
-    "NCEP_REANALYSIS":
-    "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis.dailyavgs",
-    "NCEP_REANALYSIS_II":
-    "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis2.dailyavgs",
+    "NCEP_REANALYSIS": "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis.dailyavgs",
+    "NCEP_REANALYSIS_II": "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis2.dailyavgs",
 }
 _NCEP_FACTOR_FILENAMES = {
-    "slp": os.path.join("surface",
-                        "slp.{year}.nc"),  # for NCEP Reanalysis I only
-    "mslp": os.path.join("surface",
-                         "mslp.{year}.nc"),  # for NCEP Reanalysis II only
+    "slp": os.path.join("surface", "slp.{year}.nc"),  # for NCEP Reanalysis I only
+    "mslp": os.path.join("surface", "mslp.{year}.nc"),  # for NCEP Reanalysis II only
     "pr_wtr": os.path.join("surface", "pr_wtr.eatm.{year}.nc"),
     "uwnd": os.path.join("pressure", "uwnd.{year}.nc"),
     "vwnd": os.path.join("pressure", "vwnd.{year}.nc"),
@@ -63,8 +62,7 @@ def read_daily_ncep(
     end_date: date,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS",
-                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """
     Function for reading daily NCEP Reanalysis I&II data
@@ -86,8 +84,8 @@ def read_daily_ncep(
         ds_time = list()
         for year in range(year_start, year_end + 1):
             nc_file = os.path.join(
-                _NCEP_ROOT[source],
-                _NCEP_FACTOR_FILENAMES[factor].format(year=year))
+                _NCEP_ROOT[source], _NCEP_FACTOR_FILENAMES[factor].format(year=year)
+            )
             with xr.open_dataset(nc_file) as daily_ds:
                 da = daily_ds[factor]
                 levels = factors[factor]
@@ -97,15 +95,15 @@ def read_daily_ncep(
                         # new sub-veriable name
                         var_name = f"{factor}{level}"
                         ds_level.append(
-                            xr.Dataset({
-                                var_name: da.sel(level=level, drop=True)
-                            }))  # drop=True丢掉只有长度只有1的level维度
+                            xr.Dataset({var_name: da.sel(level=level, drop=True)})
+                        )  # drop=True丢掉只有长度只有1的level维度
                 else:
                     ds_level.append(xr.Dataset({factor: da}))
 
                 ds_time.append(xr.merge(ds_level))  # 将单个要素的分层子物理量组合起来, 放在时间列表中
-        ds_factor.append(xr.concat(ds_time, dim="time",
-                                   join="inner"))  # 将时间列表中所有的要素在时间维度上进行合并
+        ds_factor.append(
+            xr.concat(ds_time, dim="time", join="inner")
+        )  # 将时间列表中所有的要素在时间维度上进行合并
 
     daily_ds = xr.merge(ds_factor)  # 将将所有要素的(子)物理量全部合并到一个xr.Dataset中
     # 筛选指定日期范围内的数据
@@ -129,8 +127,7 @@ def read_monthly_ncep(
     end_date: date,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS",
-                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """
     Function for reading monthly NCEP Reanalysis I&II data
@@ -175,8 +172,7 @@ def read_rolled_ncep(
     extend: bool = True,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS",
-                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """Function for reading rolled mean NCEP Reanalysis I&II data
 
@@ -203,8 +199,12 @@ def read_rolled_ncep(
         lon_range=lon_range,
         source=source,
     )
-    rolled_ds = (ds.rolling(time=num_days).mean().shift(
-        time=-(num_days - 1)).dropna(dim="time", how="all"))
+    rolled_ds = (
+        ds.rolling(time=num_days)
+        .mean()
+        .shift(time=-(num_days - 1))
+        .dropna(dim="time", how="all")
+    )
     return rolled_ds
 
 
@@ -324,14 +324,19 @@ def read_rolled_cpc(
         lat_range=lat_range,
         lon_range=lon_range,
     )
-    rolled_ds = (ds.rolling(time=num_days).mean().shift(
-        time=-(num_days - 1)).dropna(dim="time", how="all"))
+    rolled_ds = (
+        ds.rolling(time=num_days)
+        .mean()
+        .shift(time=-(num_days - 1))
+        .dropna(dim="time", how="all")
+    )
     return rolled_ds
 
 
 # ANCHOR month_select
-def month_select(original_data: Union[xr.Dataset, xr.DataArray],
-                 months: List[int]) -> Union[xr.Dataset, xr.DataArray]:
+def month_select(
+    original_data: Union[xr.Dataset, xr.DataArray], months: List[int]
+) -> Union[xr.Dataset, xr.DataArray]:
     """Select data from `original_data` in dates of given `months`
 
     Args:
@@ -345,6 +350,72 @@ def month_select(original_data: Union[xr.Dataset, xr.DataArray],
     time_index = time_index[[dt.dt.month in months for dt in time_index]]
     subset_data = original_data.sel(time=time_index)
     return subset_data
+
+
+# ANCHOR year
+def year_select(
+    original_data: Union[xr.Dataset, xr.DataArray], years: List[int]
+) -> Union[xr.Dataset, xr.DataArray]:
+    """Select data from `original_data` in dates of given `years`
+
+    Args:
+        original_data (Union[xr.Dataset, xr.DataArray]): Original data of type `xr.Dataset` or `xr.Dataset`, the data should have a `time` dimension
+        years (List[int]): List of years, such as [1985, 1988, 2001]
+
+    Returns:
+        Union[xr.Dataset, xr.DataArray]: `subset_data` - The subset of the original data in dates of given `years`
+    """
+    time_index = original_data.time
+    time_index = time_index[[dt.dt.year in years for dt in time_index]]
+    subset_data = original_data.sel(time=time_index)
+    return subset_data
+
+
+# ANCHOR spatial (longitude & latitude) cropping
+def spatial_cropping(
+    original_data: Union[xr.Dataset, xr.DataArray],
+    lat_range: Tuple[float, float] = None,
+    lon_range: Tuple[float, float] = None,
+) -> Union[xr.Dataset, xr.DataArray]:
+    """Crop the data `orignal_data` in latitude-longitude direction with given range `lat_range` and `lon_range`
+
+    Notes:
+        1. At least one of arguments `lat_range` and `lon_range` should be given
+        2. The input `original_data` should have a latitude dimension named `lat` if `lat_range` is given
+        2. The input `original_data` should have a longitude dimension named `lon` if `lon_range` is given
+
+    Args:
+        original_data (Union[xr.Dataset, xr.DataArray]): Original data of type `xr.Dataset` or `xr.DataArray`
+        lat_range (Tuple[float, float]): Latitude range
+        lon_range (Tuple[float, float]): Longitude range
+
+    Returns:
+        Union[xr.Dataset, xr.DataArray]: The cropped sub-data of orignal data within given range
+    """
+    assert (lat_range is not None) | (
+        lon_range is not None
+    ), "At least one of 'lat_range' and 'lon_range' arguments must be provided"
+
+    # Crop data with given spatial region
+    if lat_range:
+        lat = original_data.lat
+        # lat_min, lat_max = lat.min().item(), lat.max().item(0)
+        # if not (lat_min <= lat_range[0] and lat.max() >= lat_range[1]):
+        #     warnings.warn(
+        #         f"The given latitude range {lat_range} is out of the range ({lat_min}, {lat_max}) of input data"
+        #     )
+        lat_select = lat[(lat >= lat_range[0]) & (lat <= lat_range[1])]
+        original_data = original_data.sel(lat=lat_select)
+    if lon_range:
+        lon = original_data.lon
+        # lon_min, lon_max = lon.min().item(), lon.max().item()
+        # if not (lon_min <= lon_range[0] and lon_max >= lon_range[1]):
+        #     warnings.warn(
+        #         f"The given longitude range {lon_range} is out of the range ({lon_min}, {lon_max}) of input data"
+        #     )
+        lon_select = lon[(lon >= lon_range[0]) & (lon <= lon_range[1])]
+        original_data = original_data.sel(lon=lon_select)
+    return original_data
 
 
 if __name__ == "__main__":
@@ -367,7 +438,7 @@ if __name__ == "__main__":
     cpc_tmax = read_monthly_cpc(
         factor="tmax",
         start_date=date(1979, 1, 1),
-        end_date=date(1980, 2, 5),
+        end_date=date(1981, 3, 31),
     )
     # cpc_precip = read_daily_cpc(
     #     factor="precip",
@@ -386,8 +457,11 @@ if __name__ == "__main__":
     #     num_days=30,
     # )
     cpc_tmax_sub = month_select(cpc_tmax, [1, 2, 3])
+    # print(cpc_tmax.lat.max().item())
     print(cpc_tmax_sub)
-    print(cpc_tmax)
+    cpc_tmax_sub = spatial_cropping(cpc_tmax_sub, lat_range=(0, 90), lon_range=(0, 90))
+    print(cpc_tmax_sub)
+    # print(cpc_tmax)
     # print(cpc_precip)
     # print(cpc_monthly)
     # print(cpc_rolled)
