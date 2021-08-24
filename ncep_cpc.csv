@@ -1,0 +1,4 @@
+host,user,passwd,cwd,local_root,file_reg 
+ftp2.psl.noaa.gov,,,Datasets/cpc_global_precip,/DATA/CPS_Data/ncep_reanalysis,^precip\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/cpc_global_temp,/DATA/CPS_Data/ncep_reanalysis,^tmax\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/cpc_global_temp,/DATA/CPS_Data/ncep_reanalysis,^tmin\.\d{4}\.nc$

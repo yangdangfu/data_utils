@@ -8,3 +8,14 @@ ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis.dailyavgs/pressure,/DATA/CPS_Data/n
 ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^vwnd\.\d{4}\.nc$
 ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis.dailyavgs/surface,/DATA/CPS_Data/ncep_reanalysis,^pr_wtr\.eatm\.\d{4}\.nc$
 ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis.dailyavgs/surface,/DATA/CPS_Data/ncep_reanalysis,^slp\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^air\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^hgt\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^omega\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^rhum\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^uwnd\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/pressure,/DATA/CPS_Data/ncep_reanalysis,^vwnd\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/surface,/DATA/CPS_Data/ncep_reanalysis,^mslp\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/ncep.reanalysis2.dailyavgs/surface,/DATA/CPS_Data/ncep_reanalysis,^pr_wtr\.eatm\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/cpc_global_precip,/DATA/CPS_Data/ncep_reanalysis,^precip\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/cpc_global_temp,/DATA/CPS_Data/ncep_reanalysis,^tmax\.\d{4}\.nc$
+ftp2.psl.noaa.gov,,,Datasets/cpc_global_temp,/DATA/CPS_Data/ncep_reanalysis,^tmin\.\d{4}\.nc$
