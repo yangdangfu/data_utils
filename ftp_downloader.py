@@ -5,12 +5,12 @@ import os
 import re
 import timeit
 from typing import List
-import datetime
+import logging
 
 
 class FTPDownloader:
     """A class to sync the local folder from the remote FTP directory. A regular expression can be used only to sync the files that the filename matches the given pattern.
-    
+
     Note the syncer only support downloading files from remote to local
     """
     def __init__(
@@ -57,8 +57,8 @@ class FTPDownloader:
         return matched_files
 
     def files_to_update(self, sync_mode: str = "auto") -> List[str]:
-        """Return the files that match the given pattern and are going to download. Compared to the `file_to_sync` function, this function also do the size check to return only the files that have different size between remote and local 
-        
+        """Return the files that match the given pattern and are going to download. Compared to the `file_to_sync` function, this function also do the size check to return only the files that have different size between remote and local
+
         Args:
             sync_mode (str): See `sync_mode` argument in function `run`
 
@@ -88,7 +88,6 @@ class FTPDownloader:
                             if os.stat(filepath).st_size == ftp.size(
                                     file):  # check if the file size is equal
                                 continue
-                    # print(f"Downloading file {file} to {filepath} ...")
                     matched_files.append(file)
         return matched_files
 
@@ -100,12 +99,14 @@ class FTPDownloader:
 
         Args:
             sync_mode (str, optional): Sync mode can be "auto", "override", "no_override". Defaults to "auto".
-            - if it is "auto", the syncer will automatically check the file sizes on both remote and local, download and override the local file only if they are different.  
+            - if it is "auto", the syncer will automatically check the file sizes on both remote and local, download and override the local file only if they are different.
             - if it is "override", the syncer will override the local file without file size check.
             - if it is "no_override", the syncer will never override the exsiting file.
         """
         assert sync_mode in [
-            "auto", "override", "no_override"
+            "auto",
+            "override",
+            "no_override",
         ], f"The input argument must be one of 'auto', 'override' and 'no_override'."
         os.makedirs(
             os.path.join(self.local_root, self.cwd),
@@ -122,34 +123,22 @@ class FTPDownloader:
                     filepath = os.path.join(self.local_root, self.cwd, file)
                     if os.path.exists(filepath):  # file exists
                         if sync_mode == "no_override":
-                            print(
-                                f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} {filepath} already exists and won't be update in `no_override` mode."
+                            logging.info(
+                                f"{filepath} already exists and won't be update in `no_override` mode."
                             )
                             continue
-                        if sync_mode == "auto":
-                            if os.stat(filepath).st_size == ftp.size(
-                                    file):  # check if the file size is equal
-                                # print(
-                                #     f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} {filepath} already up to date."
-                                # )
-                                continue
-                    print(
-                        f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Downloading file {file} to {filepath} ..."
-                    )
-                    # try:
+                        if (sync_mode == "auto") and (os.stat(filepath).st_size
+                                                      == ftp.size(file)):
+                            # the mode is 'auto' and the file size is equal, no need to update
+                            # logging.info(f"{filepath} already up to date.")
+                            continue
+                    logging.info(f"Downloading file {file} to {filepath} ...")
                     start = timeit.default_timer()
                     ftp.retrbinary("RETR " + file, open(filepath, "wb").write)
                     stop = timeit.default_timer()
-                    print(
-                        f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Time used {stop - start:.0f}s for downloading file {file}"
+                    logging.info(
+                        f"Time used {stop - start:.0f}s for downloading file {file}"
                     )
-                    # except KeyboardInterrupt:
-                    #     return  # stop the download if the `ctrl+c` is pressed
-                    # except:
-                    #     print(
-                    #         f"{datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')} Failed to download file {file} to {filepath}"
-                    #     )
-                    #     continue
 
 
 if __name__ == "__main__":
