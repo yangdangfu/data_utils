@@ -28,12 +28,16 @@ import warnings
 
 # ANCHOR configs
 _NCEP_ROOT = {
-    "NCEP_REANALYSIS": "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis.dailyavgs",
-    "NCEP_REANALYSIS_II": "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis2.dailyavgs",
+    "NCEP_REANALYSIS":
+    "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis.dailyavgs",
+    "NCEP_REANALYSIS_II":
+    "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis2.dailyavgs",
 }
 _NCEP_FACTOR_FILENAMES = {
-    "slp": os.path.join("surface", "slp.{year}.nc"),  # for NCEP Reanalysis I only
-    "mslp": os.path.join("surface", "mslp.{year}.nc"),  # for NCEP Reanalysis II only
+    "slp": os.path.join("surface",
+                        "slp.{year}.nc"),  # for NCEP Reanalysis I only
+    "mslp": os.path.join("surface",
+                         "mslp.{year}.nc"),  # for NCEP Reanalysis II only
     "pr_wtr": os.path.join("surface", "pr_wtr.eatm.{year}.nc"),
     "uwnd": os.path.join("pressure", "uwnd.{year}.nc"),
     "vwnd": os.path.join("pressure", "vwnd.{year}.nc"),
@@ -59,7 +63,8 @@ def read_daily_ncep(
     end_date: date,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS",
+                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """
     Function for reading daily NCEP Reanalysis I&II data
@@ -81,8 +86,8 @@ def read_daily_ncep(
         ds_time = list()
         for year in range(year_start, year_end + 1):
             nc_file = os.path.join(
-                _NCEP_ROOT[source], _NCEP_FACTOR_FILENAMES[factor].format(year=year)
-            )
+                _NCEP_ROOT[source],
+                _NCEP_FACTOR_FILENAMES[factor].format(year=year))
             with xr.open_dataset(nc_file) as daily_ds:
                 da = daily_ds[factor]
                 levels = factors[factor]
@@ -92,15 +97,15 @@ def read_daily_ncep(
                         # new sub-veriable name
                         var_name = f"{factor}{level}"
                         ds_level.append(
-                            xr.Dataset({var_name: da.sel(level=level, drop=True)})
-                        )  # drop=True丢掉只有长度只有1的level维度
+                            xr.Dataset({
+                                var_name: da.sel(level=level, drop=True)
+                            }))  # drop=True丢掉只有长度只有1的level维度
                 else:
                     ds_level.append(xr.Dataset({factor: da}))
 
                 ds_time.append(xr.merge(ds_level))  # 将单个要素的分层子物理量组合起来, 放在时间列表中
-        ds_factor.append(
-            xr.concat(ds_time, dim="time", join="inner")
-        )  # 将时间列表中所有的要素在时间维度上进行合并
+        ds_factor.append(xr.concat(ds_time, dim="time",
+                                   join="inner"))  # 将时间列表中所有的要素在时间维度上进行合并
 
     daily_ds = xr.merge(ds_factor)  # 将将所有要素的(子)物理量全部合并到一个xr.Dataset中
     # 筛选指定日期范围内的数据
@@ -124,7 +129,8 @@ def read_monthly_ncep(
     end_date: date,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS",
+                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """
     Function for reading monthly NCEP Reanalysis I&II data
@@ -169,7 +175,8 @@ def read_rolled_ncep(
     extend: bool = True,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS",
+                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """Function for reading rolled mean NCEP Reanalysis I&II data
 
@@ -196,12 +203,8 @@ def read_rolled_ncep(
         lon_range=lon_range,
         source=source,
     )
-    rolled_ds = (
-        ds.rolling(time=num_days)
-        .mean()
-        .shift(time=-(num_days - 1))
-        .dropna(dim="time", how="all")
-    )
+    rolled_ds = (ds.rolling(time=num_days).mean().shift(
+        time=-(num_days - 1)).dropna(dim="time", how="all"))
     return rolled_ds
 
 
@@ -321,19 +324,14 @@ def read_rolled_cpc(
         lat_range=lat_range,
         lon_range=lon_range,
     )
-    rolled_ds = (
-        ds.rolling(time=num_days)
-        .mean()
-        .shift(time=-(num_days - 1))
-        .dropna(dim="time", how="all")
-    )
+    rolled_ds = (ds.rolling(time=num_days).mean().shift(
+        time=-(num_days - 1)).dropna(dim="time", how="all"))
     return rolled_ds
 
 
 # ANCHOR month_select
-def month_select(
-    original_data: Union[xr.Dataset, xr.DataArray], months: List[int]
-) -> Union[xr.Dataset, xr.DataArray]:
+def month_select(original_data: Union[xr.Dataset, xr.DataArray],
+                 months: List[int]) -> Union[xr.Dataset, xr.DataArray]:
     """Select data from `original_data` in dates of given `months`
 
     Args:
