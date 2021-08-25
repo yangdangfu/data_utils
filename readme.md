@@ -1,5 +1,5 @@
 # data_utils
-A data utility that will include the functions such as data download & upload & reconstruction & loading, etc..
+A data utility that will include the functions such as data download & upload & reconstruction & loading, visualization and more...
 
 ---
 ## Features (Working in Progress)
@@ -8,6 +8,8 @@ A data utility that will include the functions such as data download & upload & 
 - [ ] Upload
 - [ ] Reconstruction
 - [x] Loading
+- [x] Visualization
+- [ ] ...
 
 ---
 ## Download
@@ -99,3 +101,6 @@ The data loading functions (including auxilary ones) are now implemented in the 
 - `spatial_cropping`: crop data from `original_data` within given latitude/longitude range
 
 More details about how to use these functions can be found in the docstring in the module.
+
+### Visualization
+The visualization functions are avaliable in the module (visualization_utils)[visualization_utils.py]. Refer totthe docstring for more details. See the script (visualization_demo.py)[visualization_demo.py] for examples.
