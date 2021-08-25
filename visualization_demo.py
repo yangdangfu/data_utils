@@ -6,6 +6,7 @@ import cmaps
 
 from datetime import date
 import pandas as pd
+import math
 
 
 def precip_diff_demo():
@@ -40,7 +41,7 @@ def precip_diff_demo():
             data=data[i, ...],
             region_bbbox=(72, 137, 15, 55),
             title=f"Diff {factor} {dt.strftime('%Y%m')}",
-            img_path=f"images/{factor}_{dt.strftime('%Y%m')}.png",
+            img_path=f"images/{factor}_diff_{dt.strftime('%Y%m')}.png",
             figure_kw={"dpi": 144, "figsize": (12, 9)},
             contour_kw={
                 "levels": np.linspace(-vmax, vmax, 17),
@@ -52,5 +53,45 @@ def precip_diff_demo():
         )
 
 
+def precip_demo():
+    """This function demonstrates the plots of the daily average precipitation (mm/day) of the month-scale. Other settings are pretty the same as the function precip_diff_demo, go and check it out.
+    """
+    # load data
+    factor = "precip"
+    xmin, xmax, ymin, ymax = 72, 137, 15, 55
+    cpc_da = read_monthly_cpc(factor, date(2020, 8, 1), date(
+        2021, 7, 31), lat_range=(ymin, ymax), lon_range=(xmin, xmax)).to_array()
+
+    # compute maximum value, the minimum should be 0
+    cpc_quantile_da = cpc_da.quantile(0.98, keep_attrs=False)
+    vmax = math.ceil(round(cpc_quantile_da.item()) / 2) * 2
+
+    lat, lon = cpc_da.lat.values, cpc_da.lon.values
+    data = cpc_da.values.squeeze()
+    print(data.shape, lat.shape, lon.shape)  # Out: (12, 80, 130) (80,) (130,)
+
+    for i, dt in enumerate(pd.date_range(date(2020, 8, 1), date(
+            2021, 7, 31), freq="MS")):
+        draw_contourf_map(
+            lat=lat,
+            lon=lon,
+            data=data[i, ...],
+            region_bbbox=(72, 137, 15, 55),
+            title=f"Diff {factor} {dt.strftime('%Y%m')}",
+            img_path=f"images/{factor}_{dt.strftime('%Y%m')}.png",
+            figure_kw={"dpi": 144, "figsize": (12, 9)},
+            contour_kw={
+                "levels": np.linspace(0, vmax, 15),
+                "vmin": 0,
+                "vmax": vmax,
+                "cmap": cmaps.MPL_YlGnBu,
+                "extend": "max"
+            },
+        )
+
+
 if __name__ == "__main__":
-    precip_diff_demo()
+    # Uncoment the line then run the script to see results
+    # precip_diff_demo()
+    # precip_demo()
+    print("Done!")
