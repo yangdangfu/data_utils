@@ -102,5 +102,5 @@ The data loading functions (including auxilary ones) are now implemented in the 
 
 More details about how to use these functions can be found in the docstring in the module.
 
-### Visualization
-The visualization functions are avaliable in the module (visualization_utils)[visualization_utils.py]. Refer totthe docstring for more details. See the script (visualization_demo.py)[visualization_demo.py] for examples.
+## Visualization
+The visualization functions are avaliable in the module [visualization_utils](visualization_utils.py). Refer totthe docstring for more details. See the script [visualization_demo.py](visualization_demo.py) for examples.
