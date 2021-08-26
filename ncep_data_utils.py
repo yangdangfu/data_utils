@@ -230,13 +230,23 @@ def read_daily_cpc(
         xr.Dataset: `daily_ds` The daily CPC data of given variable
     """
     year_start, year_end = start_date.year, end_date.year
-    ds_time = list()
+
+    # 1 ----------- use open_mfdataset()
+    nc_files = list()
     for year in range(year_start, year_end + 1):
         nc_file = os.path.join(_CPC_FACTOR_FILENAMES[factor].format(year=year))
-        with xr.open_dataset(nc_file) as ds:
-            ds_time.append(ds)
-    # concat all datasets of years into a whole
-    daily_ds = xr.concat(ds_time, dim="time", join="inner")
+        nc_files.append(nc_file)
+    daily_ds = xr.open_mfdataset(nc_files, concat_dim='time', parallel=True).persist()
+
+    # 2 ----------- use open_dataset()
+    # ds_time = list()
+    # for year in range(year_start, year_end + 1):
+    #     nc_file = os.path.join(_CPC_FACTOR_FILENAMES[factor].format(year=year))
+    #     with xr.open_dataset(nc_file) as ds:
+    #         ds_time.append(ds)
+    # # concat all datasets of years into a whole
+    # daily_ds = xr.concat(ds_time, dim="time", join="inner")
+
     # date slice
     daily_ds = daily_ds.sel(time=slice(start_date, end_date))
     # latitude & longitude crops
