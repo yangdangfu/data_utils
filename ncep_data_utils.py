@@ -263,7 +263,7 @@ def read_monthly_cpc(
     end_date: date,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-):
+) -> xr.Dataset:
     """
     Function for reading monthly CPC total precipitation / maximum temperature / minimum temperature data
 
