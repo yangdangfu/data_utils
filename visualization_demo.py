@@ -19,10 +19,18 @@ def precip_diff_demo():
     """
     factor = "precip"
     xmin, xmax, ymin, ymax = 72, 137, 15, 55
-    cpc_clim_da = read_daily_cpc(factor, date(2020, 1, 1), date(
-        2020, 12, 31), lat_range=(ymin, ymax), lon_range=(xmin, xmax)).to_array().mean(dim="time", skipna=True)
-    cpc_da = read_monthly_cpc(factor, date(2020, 8, 1), date(
-        2021, 7, 31), lat_range=(ymin, ymax), lon_range=(xmin, xmax)).to_array()
+    cpc_clim_da = read_daily_cpc(factor,
+                                 date(2020, 1, 1),
+                                 date(2020, 12, 31),
+                                 lat_range=(ymin, ymax),
+                                 lon_range=(xmin,
+                                            xmax)).to_array().mean(dim="time",
+                                                                   skipna=True)
+    cpc_da = read_monthly_cpc(factor,
+                              date(2020, 8, 1),
+                              date(2021, 7, 31),
+                              lat_range=(ymin, ymax),
+                              lon_range=(xmin, xmax)).to_array()
 
     cpc_diff_da = cpc_da - cpc_clim_da
     cpc_quantile_da = cpc_diff_da.quantile([0.02, 0.98], keep_attrs=False)
@@ -33,8 +41,8 @@ def precip_diff_demo():
 
     print(data.shape, lat.shape, lon.shape)  # Out: (12, 80, 130) (80,) (130,)
 
-    for i, dt in enumerate(pd.date_range(date(2020, 8, 1), date(
-            2021, 7, 31), freq="MS")):
+    for i, dt in enumerate(
+            pd.date_range(date(2020, 8, 1), date(2021, 7, 31), freq="MS")):
         draw_contourf_map(
             lat=lat,
             lon=lon,
@@ -42,7 +50,10 @@ def precip_diff_demo():
             region_bbbox=(72, 137, 15, 55),
             title=f"Diff {factor} {dt.strftime('%Y%m')}",
             img_path=f"images/{factor}_diff_{dt.strftime('%Y%m')}.png",
-            figure_kw={"dpi": 144, "figsize": (12, 9)},
+            figure_kw={
+                "dpi": 144,
+                "figsize": (12, 9)
+            },
             contour_kw={
                 "levels": np.linspace(-vmax, vmax, 17),
                 "vmin": -vmax,
@@ -59,8 +70,11 @@ def precip_demo():
     # load data
     factor = "precip"
     xmin, xmax, ymin, ymax = 72, 137, 15, 55
-    cpc_da = read_monthly_cpc(factor, date(2020, 8, 1), date(
-        2021, 7, 31), lat_range=(ymin, ymax), lon_range=(xmin, xmax)).to_array()
+    cpc_da = read_monthly_cpc(factor,
+                              date(2020, 8, 1),
+                              date(2021, 7, 31),
+                              lat_range=(ymin, ymax),
+                              lon_range=(xmin, xmax)).to_array()
 
     # compute maximum value, the minimum should be 0
     cpc_quantile_da = cpc_da.quantile(0.98, keep_attrs=False)
@@ -70,8 +84,8 @@ def precip_demo():
     data = cpc_da.values.squeeze()
     print(data.shape, lat.shape, lon.shape)  # Out: (12, 80, 130) (80,) (130,)
 
-    for i, dt in enumerate(pd.date_range(date(2020, 8, 1), date(
-            2021, 7, 31), freq="MS")):
+    for i, dt in enumerate(
+            pd.date_range(date(2020, 8, 1), date(2021, 7, 31), freq="MS")):
         draw_contourf_map(
             lat=lat,
             lon=lon,
@@ -79,7 +93,10 @@ def precip_demo():
             region_bbbox=(72, 137, 15, 55),
             title=f"Diff {factor} {dt.strftime('%Y%m')}",
             img_path=f"images/{factor}_{dt.strftime('%Y%m')}.png",
-            figure_kw={"dpi": 144, "figsize": (12, 9)},
+            figure_kw={
+                "dpi": 144,
+                "figsize": (12, 9)
+            },
             contour_kw={
                 "levels": np.linspace(0, vmax, 15),
                 "vmin": 0,
@@ -87,11 +104,27 @@ def precip_demo():
                 "cmap": cmaps.MPL_YlGnBu,
                 "extend": "max"
             },
+            feature_kw={
+                # "STATES": {
+                #     "linewidth": 0.15,
+                #     "edgecolor": "dimgray"
+                # },
+                # "LAKES": {
+                #     "linewidth": 0.2,
+                #     "edgecolor": "red"
+                # },
+                "RIVERS": {
+                    "linewidth": 0.3,
+                    "edgecolor": "blue"
+                }
+            },
         )
+
+        break
 
 
 if __name__ == "__main__":
     # Uncoment the line then run the script to see results
     # precip_diff_demo()
-    # precip_demo()
+    precip_demo()
     print("Done!")
