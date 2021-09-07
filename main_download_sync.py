@@ -79,7 +79,7 @@ def main(csv: Path = typer.Argument(..., help="CSV filepath"),
         if log_dir != "":
             os.makedirs(log_dir, exist_ok=True)
         file_handler = handlers.RotatingFileHandler(filename=log_file,
-                                                    maxBytes=20480,
+                                                    maxBytes=204800,
                                                     backupCount=5)
         handler_list.append(file_handler)
     logging.basicConfig(
@@ -103,6 +103,14 @@ def main(csv: Path = typer.Argument(..., help="CSV filepath"),
     # schedule.every().minute.do(sync,
     #                            sync_info=sync_info_df,
     #                            num_workers=num_workers)  # FOR DEBUG
+    try:
+        logging.info(f"Performing the first synchronization after startup...")
+        sync(sync_info=sync_info_df, num_workers=num_workers)
+    except KeyboardInterrupt:
+        logging.exception("ctrl-c is pressed.")
+        sys.exit()  # stop the program if the `ctrl+c` is pressed
+    except:
+        logging.exception("Something wrong during first synchronization!")
 
     while True:
         try:
