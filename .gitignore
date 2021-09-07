@@ -2,6 +2,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 # Cuttomed by me
 test_*.py
+logs/
+images/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
