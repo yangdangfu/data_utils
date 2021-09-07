@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# %%
 """
 The module provides functions including reading NCEP reanalysis I&II data in different scales (daily, monthly...), CPC global precipitation & minimum temperature & maximum temperature data, and other auxiliary utility functions like subset data selection.
 
@@ -176,7 +177,7 @@ def read_rolled_ncep(
     start_date: date,
     end_date: date,
     num_days: int,
-    extend: bool = True,
+    center: bool = True,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
     source: Literal["NCEP_REANALYSIS",
@@ -189,7 +190,7 @@ def read_rolled_ncep(
         start_date (date): same as in `read_daily_ncep`
         end_date (date): same as in `read_daily_ncep`
         num_days (int): the roll window size (number of days)
-        extend (bool, optional): whether to extend the temporal range according to the `num_days`. If True, the end date of returned data will be the date same as `end_date`; if False, the end date of the returned data will be the day `num_days-1` days before the `end_date`. Defaults to True.
+        center (bool, optional):  Set the labels at the center of the window. Defaults to True
         lat_range (Tuple[float, float], optional): same as in `read_daily_ncep`
         lon_range (Tuple[float, float], optional): same as in `read_daily_ncep`
         source (Literal[, optional): same as in `read_daily_ncep`
@@ -197,8 +198,8 @@ def read_rolled_ncep(
     Returns:
         xr.Dataset: `rolled_ds` The rolled mean NCEP reanalysis I (or II) data of given variables & temporal & spatial range
     """
-    if extend:
-        end_date = end_date + relativedelta(days=num_days - 1)
+    # if extend:
+    #     end_date = end_date + relativedelta(days=num_days - 1)
     ds = read_daily_ncep(
         factors=factors,
         start_date=start_date,
@@ -207,8 +208,14 @@ def read_rolled_ncep(
         lon_range=lon_range,
         source=source,
     )
-    rolled_ds = (ds.rolling(time=num_days).mean().shift(
-        time=-(num_days - 1)).dropna(dim="time", how="all"))
+    rolled_ds = ds.rolling(
+        dim={
+            "time": num_days
+        },
+        center=center,
+    ).mean().dropna(dim="time", how="all")
+    # rolled_ds = (ds.rolling(time=num_days).mean().shift(
+    #     time=-(num_days - 1)).dropna(dim="time", how="all"))
     return rolled_ds
 
 
@@ -302,7 +309,7 @@ def read_rolled_cpc(
     start_date: date,
     end_date: date,
     num_days: int,
-    extend: bool = True,
+    center: bool = True,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
 ) -> xr.Dataset:
@@ -313,15 +320,13 @@ def read_rolled_cpc(
         start_date (date): same as in `read_daily_cpc`
         end_date (date): same as in `read_daily_cpc`
         num_days (int): [description]
-        extend (bool, optional): whether to extend the temporal range according to the `num_days`. If True, the end date of returned data will be the date same as `end_date`; if False, the end date of the returned data will be the day `num_days-1` days before the `end_date`. Defaults to True
+        center (bool, optional):  Set the labels at the center of the window. Defaults to True
         lat_range (Tuple[float, float], optional): same as in `read_daily_cpc`
         lon_range (Tuple[float, float], optional): same as in `read_daily_cpc`
 
     Returns:
         xr.Dataset: `rolled_ds` The rolled mean of CPC data in given temporal & spatial range
     """
-    if extend:
-        end_date = end_date + relativedelta(days=num_days - 1)
     ds = read_daily_cpc(
         factor=factor,
         start_date=start_date,
@@ -329,8 +334,14 @@ def read_rolled_cpc(
         lat_range=lat_range,
         lon_range=lon_range,
     )
-    rolled_ds = (ds.rolling(time=num_days).mean().shift(
-        time=-(num_days - 1)).dropna(dim="time", how="all"))
+    # rolled_ds = (ds.rolling(time=num_days).mean().shift(
+    # time=-(num_days - 1)).dropna(dim="time", how="all"))
+    rolled_ds = ds.rolling(
+        dim={
+            "time": num_days
+        },
+        center=center,
+    ).mean().dropna(dim="time", how="all")
     return rolled_ds
 
 
@@ -418,52 +429,35 @@ def spatial_cropping(
 
 
 if __name__ == "__main__":
-    # ds1 = read_daily_ncep(
-    #     factors={"air": [500, 850], "slp": None, "pr_wtr": None},
-    #     start_date=date(2000, 1, 1),
-    #     end_date=date(2002, 2, 5),
-    #     source="NCEP_REANALYSIS",
-    # )
-    # ds2 = read_daily_ncep(
-    #     factors={"air": [500, 850], "mslp": None, "pr_wtr": None},
-    #     start_date=date(1979, 1, 1),
-    #     end_date=date(1985, 2, 5),
-    #     source="NCEP_REANALYSIS_II",
-    # )
+    if True:  # Test read_rolled_cpc
+        cpc = read_rolled_cpc(
+            factor="precip",
+            start_date=date(1979, 1, 1),
+            end_date=date(1980, 6, 30),
+            center=True,
+            num_days=10,
+            lat_range=(17, 27),
+            lon_range=(104, 118),
+        )["precip"]
+        print(cpc.shape)
+        print(cpc.time)
+        print(cpc)
 
-    # print(ds1)
-    # print(ds2)
-    # print((ds_1 - ds_2).to_array().values)
-    cpc_tmax = read_monthly_cpc(
-        factor="tmax",
-        start_date=date(1979, 1, 1),
-        end_date=date(1981, 3, 31),
-    )
-    # cpc_precip = read_daily_cpc(
-    #     factor="precip",
-    #     start_date=date(1979, 1, 1),
-    #     end_date=date(1979, 2, 5),
-    # )
-    # cpc_monthly = read_monthly_cpc(
-    #     factor="tmax",
-    #     start_date=date(1979, 1, 1),
-    #     end_date=date(1985, 2, 5),
-    # )
-    # cpc_rolled = read_rolled_cpc(
-    #     factor="tmax",
-    #     start_date=date(1979, 1, 1),
-    #     end_date=date(1985, 2, 5),
-    #     num_days=30,
-    # )
-    cpc_tmax_sub = month_select(cpc_tmax, [1, 2, 3])
-    # print(cpc_tmax.lat.max().item())
-    print(cpc_tmax_sub)
-    cpc_tmax_sub = spatial_cropping(cpc_tmax_sub,
-                                    lat_range=(0, 90),
-                                    lon_range=(0, 90))
-    print(cpc_tmax_sub)
-    # print(cpc_tmax)
-    # print(cpc_precip)
-    # print(cpc_monthly)
-    # print(cpc_rolled)
-    # print(cpc_tmax)
+    if True:  # Test read_rolled_ncep
+        ncep = read_rolled_ncep(
+            factors={
+                "slp": None,
+                "air": [500, 850]
+            },
+            start_date=date(1979, 1, 1),
+            end_date=date(1980, 6, 30),
+            center=True,
+            num_days=10,
+            lat_range=(17, 27),
+            lon_range=(104, 118),
+        ).to_array()
+        print(ncep.shape)
+        print(ncep.time)
+        print(ncep)
+
+# %%
