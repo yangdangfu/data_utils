@@ -133,4 +133,5 @@ def draw_contourf_map(
         if savefig_kw:
             savefig_kw_def.update(savefig_kw)
         fig.savefig(img_path, **savefig_kw_def)
+    plt.close()
     return fig
