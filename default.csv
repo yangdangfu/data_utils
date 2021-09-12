@@ -20,3 +20,4 @@ ftp2.psl.noaa.gov,,,Datasets/cpc_global_precip,/DATA/CPS_Data/ncep_reanalysis,^p
 ftp2.psl.noaa.gov,,,Datasets/cpc_global_temp,/DATA/CPS_Data/ncep_reanalysis,^tmax\.\d{4}\.nc$
 ftp2.psl.noaa.gov,,,Datasets/cpc_global_temp,/DATA/CPS_Data/ncep_reanalysis,^tmin\.\d{4}\.nc$
 ftp2.psl.noaa.gov,,,Datasets/noaa.ersst.v5,/DATA/CPS_Data/ncep_reanalysis,^sst\.mnmean\.nc$
+ftp2.psl.noaa.gov,,,Datasets/noaa.oisst.v2.highres,/DATA/CPS_Data/ncep_reanalysis,^sst\.day\.mean\.\d{4}\.nc$
