@@ -1,0 +1,2 @@
+host,user,passwd,cwd,local_root,file_reg 
+ftp2.psl.noaa.gov,,,Datasets/noaa.oisst.v2.highres,/DATA/CPS_Data/ncep_reanalysis,^sst\.day\.mean\.\d{4}\.nc$
