@@ -141,7 +141,7 @@ class FTPDownloader:
                                    open(filepath_cache, "wb").write)
                     if os.path.exists(filepath):
                         os.remove(filepath)
-                    shutil(src=filepath_cache, dst=filepath)
+                    shutil.move(src=filepath_cache, dst=filepath)
                     stop = timeit.default_timer()
                     logging.info(
                         f"Time used {stop - start:.0f}s for downloading file {file}"
