@@ -6,6 +6,7 @@ import re
 import timeit
 from typing import List
 import logging
+import shutil
 
 
 class FTPDownloader:
@@ -121,6 +122,8 @@ class FTPDownloader:
                 match = re.fullmatch(self.file_reg, file)  # match
                 if match:  # if filename match the given regular expression
                     filepath = os.path.join(self.local_root, self.cwd, file)
+                    filepath_cache = os.path.join(self.local_root, self.cwd,
+                                                  file + ".1")
                     if os.path.exists(filepath):  # file exists
                         if sync_mode == "no_override":
                             logging.info(
@@ -134,7 +137,11 @@ class FTPDownloader:
                             continue
                     logging.info(f"Downloading file {file} to {filepath} ...")
                     start = timeit.default_timer()
-                    ftp.retrbinary("RETR " + file, open(filepath, "wb").write)
+                    ftp.retrbinary("RETR " + file,
+                                   open(filepath_cache, "wb").write)
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                    shutil(src=filepath_cache, dst=filepath)
                     stop = timeit.default_timer()
                     logging.info(
                         f"Time used {stop - start:.0f}s for downloading file {file}"
