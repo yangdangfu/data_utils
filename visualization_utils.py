@@ -27,6 +27,7 @@ def draw_contourf_map(
     feature_kw: dict = None,
     figure_kw: dict = None,
     contour_kw: dict = None,
+    cbar_kw: dict = None,
     savefig_kw: dict = None,
 ) -> Figure:
     """A quite flexible function to draw a contour (choropleth) map, the exposed arguments `figsize_kw`, `contour_kw` and `savefig_kw` provide the user enough control to
@@ -80,6 +81,10 @@ def draw_contourf_map(
     if contour_kw:
         contour_kw_def.update(contour_kw)
 
+    cbar_kw_def = {}
+    if cbar_kw:
+        cbar_kw_def.update(cbar_kw)
+
     # create figure and axes
     proj = ccrs.PlateCarree()
     fig, ax = plt.subplots(
@@ -126,7 +131,7 @@ def draw_contourf_map(
     divider = make_axes_locatable(ax)
     cax = divider.new_horizontal(size="3.3%", pad=0.05, axes_class=plt.Axes)
     fig.add_axes(cax)
-    fig.colorbar(cf, cax=cax)
+    fig.colorbar(cf, cax=cax, **cbar_kw_def)
     # return / show / save
     if img_path:
         savefig_kw_def = {"bbox_inches": "tight"}
