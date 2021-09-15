@@ -15,6 +15,7 @@ import numpy as np
 import math
 from typing import Tuple
 from pathlib import Path
+from cartopy.util import add_cyclic_point
 
 
 def draw_contourf_map(
@@ -29,6 +30,8 @@ def draw_contourf_map(
     contour_kw: dict = None,
     cbar_kw: dict = None,
     savefig_kw: dict = None,
+    central_longitude: float = 0,
+    add_cyclic_lons: bool = False,
 ) -> Figure:
     """A quite flexible function to draw a contour (choropleth) map, the exposed arguments `figsize_kw`, `contour_kw` and `savefig_kw` provide the user enough control to
 
@@ -47,6 +50,8 @@ def draw_contourf_map(
         figure_kw (dict, optional): Arguments for figure. Defaults to None means {"dpi": 144, "figsize": (9.6, 7.2), "tight_layout": True}. See class (`matplotlib.figure.Figure` documentation)[https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure] for supported arguments
         contour_kw (dict, optional): Arguments to override the default arguments {"levels": 20, "cmap": plt.cm.Blues} input into function (Axes.contourf)[https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.contourf.html?highlight=contourf#matplotlib.axes.Axes.contourf]. Defaults to None. Check the link For a complete list of supported paramters
         savefig_kw (dict, optional): Arguments to override the default arguments {"bbox_inches", "tight"} input into function (savefig)[https://matplotlib.org/stable/api/figure_api.html?highlight=savefig#matplotlib.figure.Figure.savefig]. Only works when `img_path` is provided. Defaults to None. Check the link For a complete list of supported paramters
+        central_longitude (float): central longitude of projection PlateCarree
+        add_cyclic_lons (bool): Whether to add cyclic point on longitude direction
 
     Returns:
         Figure: The instance of the Figure
@@ -86,7 +91,7 @@ def draw_contourf_map(
         cbar_kw_def.update(cbar_kw)
 
     # create figure and axes
-    proj = ccrs.PlateCarree()
+    proj = ccrs.PlateCarree(central_longitude=central_longitude)
     fig, ax = plt.subplots(
         subplot_kw={
             "projection": proj,
@@ -114,19 +119,24 @@ def draw_contourf_map(
     # ticks and ticklabels
     ax.set_xticks(
         np.arange(xmin, xmax + 1, np.round((xmax + 1 - xmin) / 8)),
-        crs=proj,
+        crs=ccrs.PlateCarree(),
     )
     ax.set_yticks(
         np.arange(ymin, ymax + 1, np.round((ymax + 1 - ymin) / 5)),
-        crs=proj,
+        crs=ccrs.PlateCarree(),
     )
-    lon_formatter = LongitudeFormatter()
+    lon_formatter = LongitudeFormatter(zero_direction_label=True)
     lat_formatter = LatitudeFormatter()
     ax.xaxis.set_major_formatter(lon_formatter)
     ax.yaxis.set_major_formatter(lat_formatter)
     # contour(f)
-    xi, yi = np.meshgrid(lon, lat)
-    cf = ax.contourf(xi, yi, data, transform=proj, **contour_kw_def)
+    if add_cyclic_lons:
+        data, lon = add_cyclic_point(data, coord=lon)
+    cf = ax.contourf(lon,
+                     lat,
+                     data,
+                     transform=ccrs.PlateCarree(),
+                     **contour_kw_def)
     # colorbar
     divider = make_axes_locatable(ax)
     cax = divider.new_horizontal(size="3.3%", pad=0.05, axes_class=plt.Axes)
