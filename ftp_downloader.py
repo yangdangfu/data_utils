@@ -47,8 +47,8 @@ class FTPDownloader:
             List[str]: matched_files The list of files that are going to sync
         """
         matched_files = []
-        with FTP(host=self.host, user=self.user, passwd=self.passwd) as ftp:
-            ftp.login()
+        with FTP(host=self.host) as ftp:
+            ftp.login(user=self.user, passwd=self.passwd)
             ftp.cwd(self.cwd)
             files = ftp.nlst()
             for file in files:
@@ -74,14 +74,14 @@ class FTPDownloader:
         ], f"The input argument must be one of 'auto', 'override' and 'no_override'."
 
         with FTP(self.host) as ftp:
-            ftp.login()
+            ftp.login(user=self.user, passwd=self.passwd)
             ftp.cwd(self.cwd)
             files = ftp.nlst()  # list the files on remote server
 
             for file in files:
                 match = re.fullmatch(self.file_reg, file)  # match
                 if match:  # if filename match the given regular expression
-                    filepath = os.path.join(self.local_root, self.cwd, file)
+                    filepath = os.path.join(self.local_root, file)
                     if os.path.exists(filepath):  # file exists
                         if sync_mode == "no_override":
                             continue
@@ -110,20 +110,19 @@ class FTPDownloader:
             "no_override",
         ], f"The input argument must be one of 'auto', 'override' and 'no_override'."
         os.makedirs(
-            os.path.join(self.local_root, self.cwd),
+            self.local_root,
             exist_ok=True)  # create local directory if it is not exists
 
         with FTP(self.host) as ftp:
-            ftp.login()
+            ftp.login(user=self.user, passwd=self.passwd)
             ftp.cwd(self.cwd)
             files = ftp.nlst()  # list the files on remote server
 
             for file in files:
                 match = re.fullmatch(self.file_reg, file)  # match
                 if match:  # if filename match the given regular expression
-                    filepath = os.path.join(self.local_root, self.cwd, file)
-                    filepath_cache = os.path.join(self.local_root, self.cwd,
-                                                  file + ".1")
+                    filepath = os.path.join(self.local_root, file)
+                    filepath_cache = os.path.join(self.local_root, file + ".1")
                     if os.path.exists(filepath):  # file exists
                         if sync_mode == "no_override":
                             logging.info(
