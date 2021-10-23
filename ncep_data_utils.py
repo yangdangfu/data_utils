@@ -6,6 +6,7 @@ The module provides functions including reading NCEP reanalysis I&II data in dif
 Function lists:
 - `read_daily_ncep`: read daily NCEP reanalysis I&II data
 - `read_monthly_ncep`: read monthly NCEP reanalysis I&II data
+- `read_quarterly_ncep`: read monthly NCEP reanalysis I&II data
 - `read_rolled_ncep`: read rolled mean NCEP reanalysis I&II data
 
 - `read_daily_cpc`: read daily tmax/tmin/precip data from CPC global data
@@ -21,14 +22,11 @@ Notes:
 """
 import calendar
 from datetime import date
-from logging import warning
 from typing import Dict, List, Literal, Tuple, Union
-import dask
 from dateutil.relativedelta import relativedelta
 
 import os
 import xarray as xr
-from enum import Enum
 import warnings
 
 # ANCHOR configs
@@ -169,6 +167,48 @@ def read_monthly_ncep(
     )
     monthly_ds = daily_ds.resample(time="MS").mean()
     return monthly_ds
+
+
+# ANCHOR read_quarterly_ncep
+def read_quarterly_ncep(
+    factors: Dict[str, list],
+    start_date: date,
+    end_date: date,
+    start_month: str = "Mar",
+    lat_range: Tuple[float, float] = None,
+    lon_range: Tuple[float, float] = None,
+    source: Literal["NCEP_REANALYSIS",
+                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+) -> xr.Dataset:
+    """
+    Function for reading quarterly NCEP Reanalysis I&II data
+
+    Args:
+        factors (Dict[str, list]): A dict of the factors/variables to read. The keys of the dict are the factor names such as `slp`, `air`, `uwnd`, etc. The values of the dict are the list of factor levels, like `[500, 850]`, it should be `None` if the factor doesn't have a level. An example `factors` is {"air": [500, 850], "slp": None}
+        start_date (date): The start month of the first quarter, e.g. 2021-03-01 of 2021-Spring. 
+        end_date (date): The start month of the last quarter, e.g. 2022-06-01 of 2022-Summer
+        start_month (str): Start month in a year of the quarter, one of Jan, Feb, Mar, Apr, ... . Mar means read quarter data of Spr, Sum, Aut, Win. Jan means read quarter data of Q1, Q2, Q3, Q4
+        lat_range (Tuple[float, float], optional): Latitude range of the data to read, which should be a subinterval of [-90, 90]. Defaults to None, which means the range is the whole [-90, 90].
+        lon_range (Tuple[float, float], optional): Longitude range of the data to read, which should be a subinterval of [0, 360]. Defaults to None, which means the range is the whole [0, 360].
+        source (Literal[, optional): Specify the data source. "NCEP_REANALYSIS" for NCEP Reanalysis I dataset, and "NCEP_REANALYSIS_II" for NCEP Reanalysis II dataset. Defaults to "NCEP_REANALYSIS".
+
+    Returns:
+        xr.Dataset: `monthly_ds` The monthly NCEP reanalysis I (or II) data of given variables & temporal & spatial range
+    """
+    start_date = start_date.replace(day=1)
+    end_date = end_date + relativedelta(months=2)
+    end_date = end_date.replace(
+        day=calendar.monthrange(end_date.year, end_date.month)[1])
+    daily_ds = read_daily_ncep(
+        factors=factors,
+        start_date=start_date,
+        end_date=end_date,
+        lat_range=lat_range,
+        lon_range=lon_range,
+        source=source,
+    )
+    quarterly_ds = daily_ds.resample(time=f"QS-{start_month}").mean()
+    return quarterly_ds
 
 
 # ANCHOR read_rolled_cpc
@@ -429,6 +469,21 @@ def spatial_cropping(
 
 
 if __name__ == "__main__":
+    if True:  # Test read_rolled_ncep
+        ncep = read_quarterly_ncep(
+            factors={
+                "slp": None,
+                "air": [500, 850]
+            },
+            start_date=date(1979, 3, 1),
+            end_date=date(1980, 6, 30),
+            start_month="Mar",
+            lat_range=(17, 27),
+            lon_range=(104, 118),
+        ).to_array()
+        print(ncep.shape)
+        print(ncep.time)
+        print(ncep)
     if True:  # Test read_rolled_cpc
         cpc = read_rolled_cpc(
             factor="precip",
@@ -459,5 +514,3 @@ if __name__ == "__main__":
         print(ncep.shape)
         print(ncep.time)
         print(ncep)
-
-# %%
