@@ -4,10 +4,11 @@
 The module provides functions including reading NCEP reanalysis I&II data in different scales (daily, monthly...), CPC global precipitation & minimum temperature & maximum temperature data, and other auxiliary utility functions like subset data selection.
 
 Function lists:
-- `read_daily_ncep`: read daily NCEP reanalysis I&II data
-- `read_monthly_ncep`: read monthly NCEP reanalysis I&II data
-- `read_quarterly_ncep`: read monthly NCEP reanalysis I&II data
-- `read_rolled_ncep`: read rolled mean NCEP reanalysis I&II data
+- `read_daily_ncep`: read daily NCEP reanalysis I&II data, as well as the reconstructed 2.5deg sst data
+- `read_monthly_ncep`: read monthly NCEP reanalysis I&II data, as well as the reconstructed 2.5deg sst data
+- `read_quarterly_ncep`: read monthly NCEP reanalysis I&II data, as well as the reconstructed 2.5deg sst data
+- `read_rolled_ncep`: read rolled mean NCEP reanalysis I&II data, as well as the reconstructed 2.5deg sst data
+- `read_highres_daily_sst`: read high-resolution daily sst data. Note the data is available from 1981-09-01
 
 - `read_daily_cpc`: read daily tmax/tmin/precip data from CPC global data
 - `read_monthly_cpc`: read monthly tmax/tmin/precip data from CPC global data
@@ -58,6 +59,9 @@ _CPC_FACTOR_FILENAMES = {
     "precip": os.path.join(_CPC_ROOT, "cpc_global_precip", "precip.{year}.nc"),
 }
 
+_HIGHRES_SST_FILEPATH_FMT = "/DATA/CPS_Data/ncep_reanalysis/Datasets/noaa.oisst.v2.highres/sst.day.mean.{year}.nc"
+_RECON2dot5_SST_FILEPATH_FMT = "/DATA/CPS_Data/ncep_reanalysis/Datasets/noaa.oisst.v2.highres/sst.{year}.nc"
+
 
 # ANCHOR read_daily_cpc
 def read_daily_ncep(
@@ -88,9 +92,12 @@ def read_daily_ncep(
     for factor in factors.keys():
         ds_time = list()
         for year in range(year_start, year_end + 1):
-            nc_file = os.path.join(
-                _NCEP_ROOT[source],
-                _NCEP_FACTOR_FILENAMES[factor].format(year=year))
+            if factor == "sst":
+                nc_file = _RECON2dot5_SST_FILEPATH_FMT.format(year=year)
+            else:
+                nc_file = os.path.join(
+                    _NCEP_ROOT[source],
+                    _NCEP_FACTOR_FILENAMES[factor].format(year=year))
             with xr.open_dataset(nc_file) as daily_ds:
                 da = daily_ds[factor]
                 levels = factors[factor]
@@ -468,15 +475,38 @@ def spatial_cropping(
     return original_data
 
 
+# ANCHOR read_highres_daily_sst
+def read_highres_daily_sst(
+    start_date: date,
+    end_date: date,
+    lat_range: Tuple[float, float] = None,
+    lon_range: Tuple[float, float] = None,
+):
+    da_list = list()  # DataArray of years
+    start_year, end_year = start_date.year, end_date.year
+    for year in range(start_year, end_year + 1):
+        filepath = _HIGHRES_SST_FILEPATH_FMT.format(year=year)
+        da = xr.open_dataarray(filepath)
+        da_list.append(da)
+    # concat
+    daily_da = xr.concat(da_list, dim="time")
+    daily_da = daily_da.sortby("time")
+    # spatial cropping
+    if lat_range is not None and lon_range is not None:
+        daily_da = spatial_cropping(daily_da, lat_range, lon_range)
+    return daily_da
+
+
 if __name__ == "__main__":
     if True:  # Test read_rolled_ncep
         ncep = read_quarterly_ncep(
             factors={
+                "sst": None,
                 "slp": None,
                 "air": [500, 850]
             },
-            start_date=date(1979, 3, 1),
-            end_date=date(1980, 6, 30),
+            start_date=date(1981, 9, 1),
+            end_date=date(1983, 6, 30),
             start_month="Mar",
             lat_range=(17, 27),
             lon_range=(104, 118),
@@ -504,8 +534,8 @@ if __name__ == "__main__":
                 "slp": None,
                 "air": [500, 850]
             },
-            start_date=date(1979, 1, 1),
-            end_date=date(1980, 6, 30),
+            start_date=date(1981, 9, 1),
+            end_date=date(1983, 6, 30),
             center=True,
             num_days=10,
             lat_range=(17, 27),

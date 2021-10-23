@@ -6,7 +6,7 @@ A data utility that will include the functions such as data download & upload & 
 
 - [x] Download
 - [ ] Upload
-- [ ] Reconstruction
+- [x] Reconstruction
 - [x] Loading
 - [x] Visualization
 - [ ] ...
@@ -82,23 +82,11 @@ In some cases, the files in `cwd` can be divided into either several different r
 
 ---
 ## Reconstruction
-(WIP)
+Now support reconstructing the high-resolution sst data to 2.5deg
 
 ---
 ## Loading
-The data loading functions (including auxilary ones) are now implemented in the module [ncep_data_utils](ncep_data_utils.py). Here are the function lists: 
-
-- `read_daily_ncep`: read daily NCEP reanalysis I&II data
-- `read_monthly_ncep`: read monthly NCEP reanalysis I&II data
-- `read_rolled_ncep`: read rolled mean NCEP reanalysis I&II data
-
-- `read_daily_cpc`: read daily tmax/tmin/precip data from CPC global data
-- `read_monthly_cpc`: read monthly tmax/tmin/precip data from CPC global data
-- `read_rolled_cpc`: read rolled mean tmax/tmin/precip data from CPC global data
-
-- `month_select`: select data from `original_data` in dates of given `months`
-- `year_select`: select data from `original_data` in dates of given `years`
-- `spatial_cropping`: crop data from `original_data` within given latitude/longitude range
+The data loading functions (including auxilary ones) are now implemented in the module [ncep_data_utils](ncep_data_utils.py). 
 
 More details about how to use these functions can be found in the docstring in the module.
 
