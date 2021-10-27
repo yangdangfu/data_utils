@@ -9,7 +9,7 @@ A data utility that will include the functions such as data download & upload & 
 - [x] Reconstruction
 - [x] Loading
 - [x] Visualization
-- [ ] ...
+- [x] Map/geospatial data utility
 
 ---
 ## Download
@@ -92,3 +92,8 @@ More details about how to use these functions can be found in the docstring in t
 
 ## Visualization
 The visualization functions are avaliable in the module [visualization_utils](visualization_utils.py). Refer totthe docstring for more details. See the script [visualization_demo.py](visualization_demo.py) for examples.
+
+## Map/geospatial data utility
+The map/geospatial data utility (implemented in the [script](map_data_utils.py)) is used to acquire data from natural earth website in the help of cartopy and geopandas. Currently the utility support 
+- get region geometry data by specify region level (province / land / country) and region names in the specified region
+- compute mask of of given lats & lons in the specified geometries (region map)
