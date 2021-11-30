@@ -1,3 +1,4 @@
+# %%
 # -*- coding: utf-8 -*-
 from typing import List, Literal, Union
 import geopandas
@@ -14,10 +15,8 @@ def region_geometry(region_level: Literal["STATE", "PROVINCE", "COUNTRY",
 
     Args:
         region_level (Literal[): Region level. `STATE` (is the same as `PROVINCE`) is the smallest level
+            LAND: 'Africa', 'Antarctica', 'Asia', 'Europe', 'North America', 'Oceania', 'Seven seas (open ocean)', 'South America'
         region_names (Union[List[str], str]): region names that in the region
-
-    Raises:
-        NotImplementedError: region level of LAND (continent) is not implemented
 
     Returns:
         gpd.GeoDataFrame: A subset data from natural earth geometry in the type of geopandas.GeoDataFrame
@@ -33,7 +32,10 @@ def region_geometry(region_level: Literal["STATE", "PROVINCE", "COUNTRY",
         shp_fpath = natural_earth("10m", "cultural", "admin_0_countries_lakes")
         match_column = "NAME"
     else:
-        raise NotImplementedError()
+        shp_fpath = natural_earth("10m", "cultural", "admin_0_countries")
+        match_column = "CONTINENT"
+        # raise NotImplementedError()
+        # return geopandas.read_file(shp_fpath)
 
     gdf = geopandas.read_file(shp_fpath)  # load data all
     gdf = gdf.set_index(match_column)  # reset index to name
@@ -103,9 +105,28 @@ def __test_country_region():
     print(mask.sum() / ((mask + 1) >= 1).sum())
 
 
+def __test_land_region():
+    gdf = region_geometry("LAND", ["Asia"])
+    lats = np.arange(15, 55 + 0.1, 1.5)
+    lons = np.arange(70, 137.5 + 0.1, 1.5)
+    mask = region_mask(lats, lons, gdf.geometry)
+
+    xi, yi = np.meshgrid(lons, lats)
+    pts_gss = geopandas.GeoSeries(
+        geopandas.points_from_xy(xi[mask].flatten(), yi[mask].flatten()))
+    # NOTE: run in notebook to visualize the results
+    ax = gdf.boundary.plot()
+    pts_gss.plot(ax=ax, color="black", markersize=1)
+
+    print(mask.sum() / ((mask + 1) >= 1).sum())
+
+
 if __name__ == "__main__":
     # province/state level region
     __test_province_region()
 
     # country level region
     __test_country_region()
+
+    # land/continent level region
+    __test_land_region()
