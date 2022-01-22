@@ -25,42 +25,21 @@ import calendar
 from datetime import date
 from typing import Dict, List, Literal, Tuple, Union
 from dateutil.relativedelta import relativedelta
+from omegaconf import OmegaConf
 
 import os
 import xarray as xr
 import warnings
 
 # ANCHOR configs
-_NCEP_ROOT = {
-    "NCEP_REANALYSIS":
-    "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis.dailyavgs",
-    "NCEP_REANALYSIS_II":
-    "/DATA/CPS_Data/ncep_reanalysis/Datasets/ncep.reanalysis2.dailyavgs",
-}
-_NCEP_FACTOR_FILENAMES = {
-    "slp": os.path.join("surface",
-                        "slp.{year}.nc"),  # for NCEP Reanalysis I only
-    "mslp": os.path.join("surface",
-                         "mslp.{year}.nc"),  # for NCEP Reanalysis II only
-    "pr_wtr": os.path.join("surface", "pr_wtr.eatm.{year}.nc"),
-    "uwnd": os.path.join("pressure", "uwnd.{year}.nc"),
-    "vwnd": os.path.join("pressure", "vwnd.{year}.nc"),
-    "omega": os.path.join("pressure", "omega.{year}.nc"),
-    "air": os.path.join("pressure", "air.{year}.nc"),
-    "hgt": os.path.join("pressure", "hgt.{year}.nc"),
-    "rhum": os.path.join("pressure", "rhum.{year}.nc"),
-    "shum": os.path.join("pressure", "shum.{year}.nc"),
-}
-
-_CPC_ROOT = "/DATA/CPS_Data/ncep_reanalysis/Datasets"
-_CPC_FACTOR_FILENAMES = {
-    "tmax": os.path.join(_CPC_ROOT, "cpc_global_temp", "tmax.{year}.nc"),
-    "tmin": os.path.join(_CPC_ROOT, "cpc_global_temp", "tmin.{year}.nc"),
-    "precip": os.path.join(_CPC_ROOT, "cpc_global_precip", "precip.{year}.nc"),
-}
-
-_HIGHRES_SST_FILEPATH_FMT = "/DATA/CPS_Data/ncep_reanalysis/Datasets/noaa.oisst.v2.highres/sst.day.mean.{year}.nc"
-_RECON2dot5_SST_FILEPATH_FMT = "/DATA/CPS_Data/ncep_reanalysis/Datasets/noaa.oisst.v2.highres/sst.{year}.nc"
+cfg = OmegaConf.to_container(OmegaConf.load("data_utils/configs.yaml"),
+                             resolve=True)
+_NCEP_ROOT = cfg["_NCEP_ROOT"]
+_NCEP_FACTOR_FILENAMES = cfg["_NCEP_FACTOR_FILENAMES"]
+# _CPC_ROOT = cfg["_CPC_ROOT"]
+_CPC_FACTOR_FILENAMES = cfg["_CPC_FACTOR_FILENAMES"]
+_HIGHRES_SST_FILEPATH_FMT = cfg["_HIGHRES_SST_FILEPATH_FMT"]
+_RECON2dot5_SST_FILEPATH_FMT = cfg["_RECON2dot5_SST_FILEPATH_FMT"]
 
 
 # ANCHOR read_daily_cpc
@@ -501,7 +480,7 @@ if __name__ == "__main__":
     if True:  # Test read_rolled_ncep
         ncep = read_quarterly_ncep(
             factors={
-                "sst": None,
+                # "sst": None,
                 "slp": None,
                 "air": [500, 850]
             },
