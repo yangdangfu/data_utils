@@ -3,31 +3,31 @@
 #   2. ftp_downloader.py  TODO
 
 
-ROOT: "E:/CPS_Data/ncep_reanalysis/Datasets"
-# ROOT: "/DATA/CPS_Data/ncep_reanalysis/Datasets"
+# ROOT: "E:/CPS_Data/ncep_reanalysis/Datasets"
+ROOT: "/DATA/CPS_Data/ncep_reanalysis/Datasets"
 # ANCHOR configs
 _NCEP_ROOT:
     NCEP_REANALYSIS: "${ROOT}/ncep.reanalysis.dailyavgs"
     NCEP_REANALYSIS_II: "${ROOT}/ncep.reanalysis2.dailyavgs"
 
 _NCEP_FACTOR_FILENAMES: 
-    slp: "surface\\slp.{year}.nc"  
-    mslp:  "surface\\mslp.{year}.nc"  
-    pr_wtr:  "surface\\pr_wtr.eatm.{year}.nc"
-    uwnd:  "pressure\\uwnd.{year}.nc"
-    vwnd:  "pressure\\vwnd.{year}.nc"
-    omega:  "pressure\\omega.{year}.nc"
-    air:  "pressure\\air.{year}.nc"
-    hgt:  "pressure\\hgt.{year}.nc"
-    rhum:  "pressure\\rhum.{year}.nc"
-    shum:  "pressure\\shum.{year}.nc"
+    slp: "surface/slp.{year}.nc"  
+    mslp:  "surface/mslp.{year}.nc"  
+    pr_wtr:  "surface/pr_wtr.eatm.{year}.nc"
+    uwnd:  "pressure/uwnd.{year}.nc"
+    vwnd:  "pressure/vwnd.{year}.nc"
+    omega:  "pressure/omega.{year}.nc"
+    air:  "pressure/air.{year}.nc"
+    hgt:  "pressure/hgt.{year}.nc"
+    rhum:  "pressure/rhum.{year}.nc"
+    shum:  "pressure/shum.{year}.nc"
 
 
 _CPC_ROOT: "${ROOT}"
 _CPC_FACTOR_FILENAMES: 
-    tmax:  "${_CPC_ROOT}\\cpc_global_temp\\tmax.{year}.nc"
-    tmin:  "${_CPC_ROOT}\\cpc_global_temp\\tmin.{year}.nc"
-    precip:  "${_CPC_ROOT}\\cpc_global_precip\\precip.{year}.nc"
+    tmax:  "${_CPC_ROOT}/cpc_global_temp/tmax.{year}.nc"
+    tmin:  "${_CPC_ROOT}/cpc_global_temp/tmin.{year}.nc"
+    precip:  "${_CPC_ROOT}/cpc_global_precip/precip.{year}.nc"
 
 
 _HIGHRES_SST_FILEPATH_FMT: "${ROOT}/noaa.oisst.v2.highres/sst.day.mean.{year}.nc"
