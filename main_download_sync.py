@@ -3,6 +3,7 @@ import typer
 from pathlib import Path
 import os
 from typing import List
+from enum import Enum
 import pandas as pd
 from ftp_downloader import FTPDownloader
 import multiprocessing as mp
@@ -11,9 +12,16 @@ import schedule
 import time
 import logging
 from logging import handlers
+from functools import partial
 
 
-def sync(sync_info: pd.DataFrame, num_workers: int):
+class SyncMode(str, Enum):
+    auto = "auto"
+    override = "override"
+    no_override = "no_override"
+
+
+def sync(sync_info: pd.DataFrame, sync_mode: SyncMode, num_workers: int):
     logging.info("Scheduled sync start...")
 
     downloaders: List[FTPDownloader] = list()
@@ -40,7 +48,7 @@ def sync(sync_info: pd.DataFrame, num_workers: int):
     #     except:
     #         print(f"Something wrong!")
     pool = mp.Pool(num_workers)
-    pools = [pool.apply_async(downloader.run) for downloader in downloaders]
+    pools = [pool.apply_async(partial(downloader.run, sync_mode=sync_mode.value)) for downloader in downloaders]
     pool.close()
     for p in pools:
         p.get()
@@ -48,26 +56,22 @@ def sync(sync_info: pd.DataFrame, num_workers: int):
     logging.info("Scheduled sync complete.")
 
 
-def main(csv: Path = typer.Argument(..., help="CSV filepath"),
-         log_file: Path = typer.Option("logs/download_log.log",
-                                       help="Output Log filepath"),
-         num_workers: int = typer.Option(1, help="Number of workders")):
+def main(
+        csv: Path = typer.Argument(..., help="CSV filepath"),
+        log_file: Path = typer.Option("logs/download_log.log", help="Output Log filepath"),
+        sync_mode: SyncMode = typer.Option(SyncMode.no_override, help="can be auto, override or no_override"),
+        num_workers: int = typer.Option(1, help="Number of workders"),
+):
     """Start the downloader with given CSV file and other options 
 
     run `python main_download_sync.py --help` for help 
 
-    Arguments:
-        CSV  CSV filepath  [required]
-
-    Options:
-        --log-file PATH        Output Log filepath  [default: logs/download_log.log]
-        --num-workers INTEGER  Number of workders  [default: 1]
-    
-    Example: 
-        python main_download_sync.py ncep_cpc.csv 
-            will download files specified in ncep_cpc.csv with default 1 worker (no parallel), and the logs will be output into the default log file logs/download_log.log
-
-        python main_download_sync.py default.csv --num-workders 4 --log-file logs/example.log
+    Example:\n 
+        python main_download_sync.py ncep_cpc.csv\n
+            will download files specified in ncep_cpc.csv with default 1 worker (no parallel), and the logs will be output into the default log file logs/download_log.log\n\n
+        python main_download_sync.py ncep_cpc.csv sync_mode=auto\n
+            will download and automatically determine whether to override the existing local files based on the file size difference between local and remote\n\n
+        python main_download_sync.py default.csv --num-workders 4 --log-file logs/example.log\n
             will download files specified in ncep_cpc.csv with 4 workers (in parallel), and the logs will be output into the default log file logs/example.log
     """
     # ANCHOR Configuration for logger
@@ -78,9 +82,7 @@ def main(csv: Path = typer.Argument(..., help="CSV filepath"),
         log_dir = os.path.dirname(log_file)
         if log_dir != "":
             os.makedirs(log_dir, exist_ok=True)
-        file_handler = handlers.RotatingFileHandler(filename=log_file,
-                                                    maxBytes=204800,
-                                                    backupCount=5)
+        file_handler = handlers.RotatingFileHandler(filename=log_file, maxBytes=204800, backupCount=5)
         handler_list.append(file_handler)
     logging.basicConfig(
         handlers=handler_list,
@@ -97,15 +99,13 @@ def main(csv: Path = typer.Argument(..., help="CSV filepath"),
     sync_info_df = pd.read_csv(csv)
     sync_info_df.fillna("", inplace=True)
     # logging.info(f"File information: \n {sync_info_df}")
-    schedule.every().day.at("00:00").do(sync,
-                                        sync_info=sync_info_df,
-                                        num_workers=num_workers)
+    schedule.every().day.at("00:00").do(sync, sync_info=sync_info_df, sync_mode=sync_mode, num_workers=num_workers)
     # schedule.every().minute.do(sync,
     #                            sync_info=sync_info_df,
     #                            num_workers=num_workers)  # FOR DEBUG
     try:
         logging.info(f"Performing the first synchronization after startup...")
-        sync(sync_info=sync_info_df, num_workers=num_workers)
+        sync(sync_info=sync_info_df, sync_mode=sync_mode, num_workers=num_workers)
     except KeyboardInterrupt:
         logging.exception("ctrl-c is pressed.")
         sys.exit()  # stop the program if the `ctrl+c` is pressed
