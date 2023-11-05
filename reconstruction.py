@@ -8,10 +8,7 @@ import xarray as xr
 from ncep_data_utils import read_highres_daily_sst
 
 
-def daily_sst_reconstruction(start_year: int,
-                             end_year: int,
-                             recon_filepath_fmt: str,
-                             resolution: float = 2.5):
+def daily_sst_reconstruction(start_year: int, end_year: int, recon_filepath_fmt: str, resolution: float = 2.5):
     for year in range(start_year, end_year + 1):
         print(f"Reconstruction of year {year}...")
         s_date = date(year, 1, 1)
