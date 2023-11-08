@@ -14,6 +14,7 @@ class FTPDownloader:
 
     Note the syncer only support downloading files from remote to local
     """
+
     def __init__(
         self,
         host: str,
@@ -86,8 +87,7 @@ class FTPDownloader:
                         if sync_mode == "no_override":
                             continue
                         if sync_mode == "auto":
-                            if os.stat(filepath).st_size == ftp.size(
-                                    file):  # check if the file size is equal
+                            if os.stat(filepath).st_size == ftp.size(file):  # check if the file size is equal
                                 continue
                     matched_files.append(file)
         return matched_files
@@ -109,42 +109,43 @@ class FTPDownloader:
             "override",
             "no_override",
         ], f"The input argument must be one of 'auto', 'override' and 'no_override'."
-        os.makedirs(
-            self.local_root,
-            exist_ok=True)  # create local directory if it is not exists
+        os.makedirs(self.local_root, exist_ok=True)  # create local directory if it is not exists
 
-        with FTP(self.host) as ftp:
-            ftp.login(user=self.user, passwd=self.passwd)
-            ftp.cwd(self.cwd)
-            files = ftp.nlst()  # list the files on remote server
+        ftp = FTP(self.host)
+        ftp.login(user=self.user, passwd=self.passwd)
+        ftp.cwd(self.cwd)
+        files = ftp.nlst()  # list the files on remote server
 
-            for file in files:
-                match = re.fullmatch(self.file_reg, file)  # match
-                if match:  # if filename match the given regular expression
-                    filepath = os.path.join(self.local_root, file)
-                    filepath_cache = os.path.join(self.local_root, file + ".1")
-                    if os.path.exists(filepath):  # file exists
-                        if sync_mode == "no_override":
-                            logging.info(
-                                f"{filepath} already exists and won't be update in `no_override` mode."
-                            )
-                            continue
-                        if (sync_mode == "auto") and (os.stat(filepath).st_size
-                                                      == ftp.size(file)):
-                            # the mode is 'auto' and the file size is equal, no need to update
-                            # logging.info(f"{filepath} already up to date.")
-                            continue
-                    logging.info(f"Downloading file {file} to {filepath} ...")
+        for file in files:
+            match = re.fullmatch(self.file_reg, file)  # match
+            if match:  # if filename match the given regular expression
+                filepath = os.path.join(self.local_root, file)
+                filepath_cache = os.path.join(self.local_root, file + ".1")
+                if os.path.exists(filepath):  # file exists
+                    if sync_mode == "no_override":
+                        logging.info(f"{filepath} already exists and won't be update in `no_override` mode.")
+                        continue
+                    if (sync_mode == "auto") and (os.stat(filepath).st_size == ftp.size(file)):
+                        # the mode is 'auto' and the file size is equal, no need to update
+                        # logging.info(f"{filepath} already up to date.")
+                        continue
+                logging.info(f"Downloading file {file} to {filepath} ...")
+                try:
                     start = timeit.default_timer()
-                    ftp.retrbinary("RETR " + file,
-                                   open(filepath_cache, "wb").write)
+                    ftp.retrbinary("RETR " + file, open(filepath_cache, "wb").write)
                     if os.path.exists(filepath):
                         os.remove(filepath)
                     shutil.move(src=filepath_cache, dst=filepath)
                     stop = timeit.default_timer()
-                    logging.info(
-                        f"Time used {stop - start:.0f}s for downloading file {file}"
-                    )
+                    logging.info(f"Time used {stop - start:.0f}s for downloading file {file}")
+                except Exception as e:
+                    # re-login
+                    ftp.close()
+                    ftp = FTP(self.host)
+                    ftp.login(user=self.user, passwd=self.passwd)
+                    ftp.cwd(self.cwd)
+                    logging.info(f"Exception happens when download {file} to {filepath}\n {e}")
+                    logging.info(f"Time used {stop - start:.0f}s for downloading file {filepath_cache}")
 
 
 if __name__ == "__main__":
@@ -152,20 +153,12 @@ if __name__ == "__main__":
     _cwd = "Datasets/cpc_global_precip"  # current working directory
     _file_reg = "^precip\.\d{4}\.nc$"
     _local = "/DATA/CPS_Data/ncep_reanalysis"
-    cpc_precip_syncer = FTPDownloader(host=_server,
-                                      cwd=_cwd,
-                                      file_reg=_file_reg,
-                                      local_root=_local)
+    cpc_precip_syncer = FTPDownloader(host=_server, cwd=_cwd, file_reg=_file_reg, local_root=_local)
 
     _cwd = "Datasets/cpc_global_temp"  # current working directory
     _file_reg = "^tmax\.\d{4}\.nc$"
 
-    cpc_tmax_syncer = FTPDownloader(host=_server,
-                                    cwd=_cwd,
-                                    file_reg=".+",
-                                    local_root=_local,
-                                    user="",
-                                    passwd="")
+    cpc_tmax_syncer = FTPDownloader(host=_server, cwd=_cwd, file_reg=".+", local_root=_local, user="", passwd="")
 
     # matched files
     print(cpc_precip_syncer.files_to_sync())
