@@ -1,16 +1,17 @@
 # %%
 # -*- coding: utf-8 -*-
 from typing import List, Literal, Union
+
 import geopandas
 import geopandas as gpd
-from cartopy.io.shapereader import natural_earth
 import numpy as np
+from cartopy.io.shapereader import natural_earth
 
 
 # ANCHOR Step 5: Encapsulation
-def region_geometry(region_level: Literal["STATE", "PROVINCE", "COUNTRY",
-                                          "LAND"],
-                    region_names: Union[List[str], str]) -> gpd.GeoDataFrame:
+def region_geometry(
+    region_level: Literal["STATE", "PROVINCE", "COUNTRY", "LAND"], region_names: Union[List[str], str]
+) -> gpd.GeoDataFrame:
     """Get region geometry (in type of geopandas.GeoDataFrame) for region specified by `region_level` and `region_names`
 
     Args:
@@ -25,8 +26,7 @@ def region_geometry(region_level: Literal["STATE", "PROVINCE", "COUNTRY",
         region_names = [region_names]
     if region_level in ["STATE", "PROVINCE"]:
         # the loaded natural earth data (of type GeoDataFrame) has a column 'name' that denotes the name of states/provinces like Guangdong, Anhui, etc.
-        shp_fpath = natural_earth("10m", "cultural",
-                                  "admin_1_states_provinces_lakes")
+        shp_fpath = natural_earth("10m", "cultural", "admin_1_states_provinces_lakes")
         match_column = "name"
     elif region_level == "COUNTRY":
         shp_fpath = natural_earth("10m", "cultural", "admin_0_countries_lakes")
@@ -42,16 +42,13 @@ def region_geometry(region_level: Literal["STATE", "PROVINCE", "COUNTRY",
     return gdf.loc[region_names]  # subset and return
 
 
-def region_mask(lats: np.ndarray,
-                lons: np.ndarray,
-                geometry: gpd.GeoSeries,
-                predicate: str = "contains") -> np.ndarray:
+def region_mask(lats: np.ndarray, lons: np.ndarray, geometry: gpd.GeoSeries, predicate: str = "contains") -> np.ndarray:
     """Compute the region mask, a 2D numpy boolean array
 
     Args:
         lats (np.ndarray): Latitude of shape (n_lats, )
         lons (np.ndarray): Longitude of shape (n_lons, )
-        geometry (gpd.GeoSeries): Geometry of the region 
+        geometry (gpd.GeoSeries): Geometry of the region
         predicate (str, optional): Name of predicate function, check geopandas.sindex.SpatialIndex.query for details. Defaults to "contains".
 
     Returns:
@@ -59,8 +56,7 @@ def region_mask(lats: np.ndarray,
     """
     n_lats, n_lons = len(lats), len(lons)
     xi, yi = np.meshgrid(lons, lats)
-    pts_gss = geopandas.GeoSeries(
-        geopandas.points_from_xy(xi.flatten(), yi.flatten()))
+    pts_gss = geopandas.GeoSeries(geopandas.points_from_xy(xi.flatten(), yi.flatten()))
     n_geoms = len(geometry)
     queried_all = list()
     for idx in range(n_geoms):
@@ -80,8 +76,7 @@ def __test_province_region():
     mask = region_mask(lats, lons, gdf.geometry)
 
     xi, yi = np.meshgrid(lons, lats)
-    pts_gss = geopandas.GeoSeries(
-        geopandas.points_from_xy(xi[mask].flatten(), yi[mask].flatten()))
+    pts_gss = geopandas.GeoSeries(geopandas.points_from_xy(xi[mask].flatten(), yi[mask].flatten()))
     # NOTE: run in notebook to visualize the results
     ax = gdf.boundary.plot()
     pts_gss.plot(ax=ax, color="black", markersize=1)
@@ -96,8 +91,7 @@ def __test_country_region():
     mask = region_mask(lats, lons, gdf.geometry)
 
     xi, yi = np.meshgrid(lons, lats)
-    pts_gss = geopandas.GeoSeries(
-        geopandas.points_from_xy(xi[mask].flatten(), yi[mask].flatten()))
+    pts_gss = geopandas.GeoSeries(geopandas.points_from_xy(xi[mask].flatten(), yi[mask].flatten()))
     # NOTE: run in notebook to visualize the results
     ax = gdf.boundary.plot()
     pts_gss.plot(ax=ax, color="black", markersize=1)
@@ -112,8 +106,7 @@ def __test_land_region():
     mask = region_mask(lats, lons, gdf.geometry)
 
     xi, yi = np.meshgrid(lons, lats)
-    pts_gss = geopandas.GeoSeries(
-        geopandas.points_from_xy(xi[mask].flatten(), yi[mask].flatten()))
+    pts_gss = geopandas.GeoSeries(geopandas.points_from_xy(xi[mask].flatten(), yi[mask].flatten()))
     # NOTE: run in notebook to visualize the results
     ax = gdf.boundary.plot()
     pts_gss.plot(ax=ax, color="black", markersize=1)

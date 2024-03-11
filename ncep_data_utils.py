@@ -22,18 +22,17 @@ Notes:
 - `slp` variable in NCEP Reanalysis I is named `mslp` in NCEP Reanalysis II
 """
 import calendar
+import os
+import warnings
 from datetime import date
 from typing import Dict, List, Literal, Tuple, Union
+
+import xarray as xr
 from dateutil.relativedelta import relativedelta
 from omegaconf import OmegaConf
 
-import os
-import xarray as xr
-import warnings
-
 # ANCHOR configs
-cfg = OmegaConf.to_container(OmegaConf.load("data_utils/configs.yaml"),
-                             resolve=True)
+cfg = OmegaConf.to_container(OmegaConf.load("data_utils/configs.yaml"), resolve=True)
 _NCEP_ROOT = cfg["_NCEP_ROOT"]
 _NCEP_FACTOR_FILENAMES = cfg["_NCEP_FACTOR_FILENAMES"]
 # _CPC_ROOT = cfg["_CPC_ROOT"]
@@ -49,8 +48,7 @@ def read_daily_ncep(
     end_date: date,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS",
-                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """
     Function for reading daily NCEP Reanalysis I&II data
@@ -74,9 +72,7 @@ def read_daily_ncep(
             if factor == "sst":
                 nc_file = _RECON2dot5_SST_FILEPATH_FMT.format(year=year)
             else:
-                nc_file = os.path.join(
-                    _NCEP_ROOT[source],
-                    _NCEP_FACTOR_FILENAMES[factor].format(year=year))
+                nc_file = os.path.join(_NCEP_ROOT[source], _NCEP_FACTOR_FILENAMES[factor].format(year=year))
             with xr.open_dataset(nc_file) as daily_ds:
                 da = daily_ds[factor]
                 levels = factors[factor]
@@ -86,15 +82,13 @@ def read_daily_ncep(
                         # new sub-veriable name
                         var_name = f"{factor}{level}"
                         ds_level.append(
-                            xr.Dataset({
-                                var_name: da.sel(level=level, drop=True)
-                            }))  # drop=True丢掉只有长度只有1的level维度
+                            xr.Dataset({var_name: da.sel(level=level, drop=True)})
+                        )  # drop=True丢掉只有长度只有1的level维度
                 else:
                     ds_level.append(xr.Dataset({factor: da}))
 
                 ds_time.append(xr.merge(ds_level))  # 将单个要素的分层子物理量组合起来, 放在时间列表中
-        ds_factor.append(xr.concat(ds_time, dim="time",
-                                   join="inner"))  # 将时间列表中所有的要素在时间维度上进行合并
+        ds_factor.append(xr.concat(ds_time, dim="time", join="inner"))  # 将时间列表中所有的要素在时间维度上进行合并
 
     daily_ds = xr.merge(ds_factor)  # 将将所有要素的(子)物理量全部合并到一个xr.Dataset中
     # 筛选指定日期范围内的数据
@@ -118,8 +112,7 @@ def read_monthly_ncep(
     end_date: date,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS",
-                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """
     Function for reading monthly NCEP Reanalysis I&II data
@@ -136,13 +129,9 @@ def read_monthly_ncep(
         xr.Dataset: `monthly_ds` The monthly NCEP reanalysis I (or II) data of given variables & temporal & spatial range
     """
     if start_date.day != 1:
-        warnings.warn(
-            f"The given start date {start_date.strftime('%Y/%m/%d')} is not the first day of the month!"
-        )
+        warnings.warn(f"The given start date {start_date.strftime('%Y/%m/%d')} is not the first day of the month!")
     if end_date.day != calendar.monthrange(end_date.year, end_date.month)[1]:
-        warnings.warn(
-            f"The given end date {end_date.strftime('%Y/%m/%d')} is not the last day of the month!"
-        )
+        warnings.warn(f"The given end date {end_date.strftime('%Y/%m/%d')} is not the last day of the month!")
     daily_ds = read_daily_ncep(
         factors=factors,
         start_date=start_date,
@@ -163,15 +152,14 @@ def read_quarterly_ncep(
     start_month: str = "Mar",
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS",
-                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """
     Function for reading quarterly NCEP Reanalysis I&II data
 
     Args:
         factors (Dict[str, list]): A dict of the factors/variables to read. The keys of the dict are the factor names such as `slp`, `air`, `uwnd`, etc. The values of the dict are the list of factor levels, like `[500, 850]`, it should be `None` if the factor doesn't have a level. An example `factors` is {"air": [500, 850], "slp": None}
-        start_date (date): The start month of the first quarter, e.g. 2021-03-01 of 2021-Spring. 
+        start_date (date): The start month of the first quarter, e.g. 2021-03-01 of 2021-Spring.
         end_date (date): The start month of the last quarter, e.g. 2022-06-01 of 2022-Summer
         start_month (str): Start month in a year of the quarter, one of Jan, Feb, Mar, Apr, ... . Mar means read quarter data of Spr, Sum, Aut, Win. Jan means read quarter data of Q1, Q2, Q3, Q4
         lat_range (Tuple[float, float], optional): Latitude range of the data to read, which should be a subinterval of [-90, 90]. Defaults to None, which means the range is the whole [-90, 90].
@@ -183,8 +171,7 @@ def read_quarterly_ncep(
     """
     start_date = start_date.replace(day=1)
     end_date = end_date + relativedelta(months=2)
-    end_date = end_date.replace(
-        day=calendar.monthrange(end_date.year, end_date.month)[1])
+    end_date = end_date.replace(day=calendar.monthrange(end_date.year, end_date.month)[1])
     daily_ds = read_daily_ncep(
         factors=factors,
         start_date=start_date,
@@ -206,8 +193,7 @@ def read_rolled_ncep(
     center: bool = True,
     lat_range: Tuple[float, float] = None,
     lon_range: Tuple[float, float] = None,
-    source: Literal["NCEP_REANALYSIS",
-                    "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
+    source: Literal["NCEP_REANALYSIS", "NCEP_REANALYSIS_II"] = "NCEP_REANALYSIS",
 ) -> xr.Dataset:
     """Function for reading rolled mean NCEP Reanalysis I&II data
 
@@ -234,12 +220,14 @@ def read_rolled_ncep(
         lon_range=lon_range,
         source=source,
     )
-    rolled_ds = ds.rolling(
-        dim={
-            "time": num_days
-        },
-        center=center,
-    ).mean().dropna(dim="time", how="all")
+    rolled_ds = (
+        ds.rolling(
+            dim={"time": num_days},
+            center=center,
+        )
+        .mean()
+        .dropna(dim="time", how="all")
+    )
     # rolled_ds = (ds.rolling(time=num_days).mean().shift(
     #     time=-(num_days - 1)).dropna(dim="time", how="all"))
     return rolled_ds
@@ -311,13 +299,9 @@ def read_monthly_cpc(
         xr.Dataset: `monthly_ds` The monthly CPC data of given variable
     """
     if start_date.day != 1:
-        warnings.warn(
-            f"The given start date {start_date.strftime('%Y/%m/%d')} is not the first day of the month!"
-        )
+        warnings.warn(f"The given start date {start_date.strftime('%Y/%m/%d')} is not the first day of the month!")
     if end_date.day != calendar.monthrange(end_date.year, end_date.month)[1]:
-        warnings.warn(
-            f"The given end date {end_date.strftime('%Y/%m/%d')} is not the last day of the month!"
-        )
+        warnings.warn(f"The given end date {end_date.strftime('%Y/%m/%d')} is not the last day of the month!")
     daily_ds = read_daily_cpc(
         factor=factor,
         start_date=start_date,
@@ -362,18 +346,19 @@ def read_rolled_cpc(
     )
     # rolled_ds = (ds.rolling(time=num_days).mean().shift(
     # time=-(num_days - 1)).dropna(dim="time", how="all"))
-    rolled_ds = ds.rolling(
-        dim={
-            "time": num_days
-        },
-        center=center,
-    ).mean().dropna(dim="time", how="all")
+    rolled_ds = (
+        ds.rolling(
+            dim={"time": num_days},
+            center=center,
+        )
+        .mean()
+        .dropna(dim="time", how="all")
+    )
     return rolled_ds
 
 
 # ANCHOR month_select
-def month_select(original_data: Union[xr.Dataset, xr.DataArray],
-                 months: List[int]) -> Union[xr.Dataset, xr.DataArray]:
+def month_select(original_data: Union[xr.Dataset, xr.DataArray], months: List[int]) -> Union[xr.Dataset, xr.DataArray]:
     """Select data from `original_data` in dates of given `months`
 
     Args:
@@ -390,8 +375,7 @@ def month_select(original_data: Union[xr.Dataset, xr.DataArray],
 
 
 # ANCHOR year
-def year_select(original_data: Union[xr.Dataset, xr.DataArray],
-                years: List[int]) -> Union[xr.Dataset, xr.DataArray]:
+def year_select(original_data: Union[xr.Dataset, xr.DataArray], years: List[int]) -> Union[xr.Dataset, xr.DataArray]:
     """Select data from `original_data` in dates of given `years`
 
     Args:
@@ -482,7 +466,7 @@ if __name__ == "__main__":
             factors={
                 # "sst": None,
                 "slp": None,
-                "air": [500, 850]
+                "air": [500, 850],
             },
             start_date=date(1981, 9, 1),
             end_date=date(1983, 6, 30),
@@ -509,10 +493,7 @@ if __name__ == "__main__":
 
     if True:  # Test read_rolled_ncep
         ncep = read_rolled_ncep(
-            factors={
-                "slp": None,
-                "air": [500, 850]
-            },
+            factors={"slp": None, "air": [500, 850]},
             start_date=date(1981, 9, 1),
             end_date=date(1983, 6, 30),
             center=True,

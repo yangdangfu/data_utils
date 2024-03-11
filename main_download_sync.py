@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-import typer
-from pathlib import Path
-import os
-from typing import List
-from enum import Enum
-import pandas as pd
-from ftp_downloader import FTPDownloader
-import multiprocessing as mp
-import sys
-import schedule
-import time
 import logging
-from logging import handlers
+import multiprocessing as mp
+import os
+import sys
+import time
+from enum import Enum
 from functools import partial
+from logging import handlers
+from pathlib import Path
+from typing import List
+
+import pandas as pd
+import schedule
+import typer
+from ftp_downloader import FTPDownloader
 
 
 class SyncMode(str, Enum):
@@ -38,7 +39,8 @@ def sync(sync_info: pd.DataFrame, sync_mode: SyncMode, num_workers: int):
                 file_reg=file_reg,
                 user=str(user),
                 passwd=str(passwd),
-            ))
+            )
+        )
 
     # for downloader in downloaders:
     #     try:
@@ -57,16 +59,16 @@ def sync(sync_info: pd.DataFrame, sync_mode: SyncMode, num_workers: int):
 
 
 def main(
-        csv: Path = typer.Argument(..., help="CSV filepath"),
-        log_file: Path = typer.Option("logs/download_log.log", help="Output Log filepath"),
-        sync_mode: SyncMode = typer.Option(SyncMode.no_override, help="can be auto, override or no_override"),
-        num_workers: int = typer.Option(1, help="Number of workders"),
+    csv: Path = typer.Argument(..., help="CSV filepath"),
+    log_file: Path = typer.Option("logs/download_log.log", help="Output Log filepath"),
+    sync_mode: SyncMode = typer.Option(SyncMode.no_override, help="can be auto, override or no_override"),
+    num_workers: int = typer.Option(1, help="Number of workders"),
 ):
-    """Start the downloader with given CSV file and other options 
+    """Start the downloader with given CSV file and other options
 
-    run `python main_download_sync.py --help` for help 
+    run `python main_download_sync.py --help` for help
 
-    Example:\n 
+    Example:\n
         python main_download_sync.py ncep_cpc.csv\n
             will download files specified in ncep_cpc.csv with default 1 worker (no parallel), and the logs will be output into the default log file logs/download_log.log\n\n
         python main_download_sync.py ncep_cpc.csv sync_mode=auto\n

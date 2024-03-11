@@ -2,8 +2,9 @@
 """ Data reconstruction module """
 import os
 from datetime import date
-import numpy as np
 from typing import Tuple
+
+import numpy as np
 import xarray as xr
 from ncep_data_utils import read_highres_daily_sst
 
@@ -24,4 +25,5 @@ def daily_sst_reconstruction(start_year: int, end_year: int, recon_filepath_fmt:
 
 if __name__ == "__main__":
     from ncep_data_utils import _RECON2dot5_SST_FILEPATH_FMT
+
     daily_sst_reconstruction(1981, 2021, _RECON2dot5_SST_FILEPATH_FMT, 2.5)

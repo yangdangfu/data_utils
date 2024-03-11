@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """ A module for FTPDownloader class implementation and test"""
-from ftplib import FTP
+import logging
 import os
 import re
-import timeit
-from typing import List
-import logging
 import shutil
+import timeit
+from ftplib import FTP
+from typing import List
 
 
 class FTPDownloader:
@@ -41,7 +41,9 @@ class FTPDownloader:
         self.file_reg = file_reg
         self.local_root = local_root
 
-    def files_to_sync(self, ) -> List[str]:
+    def files_to_sync(
+        self,
+    ) -> List[str]:
         """Return the files that match the given pattern and are going to sync. The function can be used to check if the provided class initialization arguments meet the requirements that sync the right files
 
         Returns:

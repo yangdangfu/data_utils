@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """ A script to check if the given .csv file is correct (can fetch the remote file wanted) """
-from ftp_downloader import FTPDownloader
+from pathlib import Path
+from typing import Union
+
 import pandas as pd
 import typer
-from pathlib import Path
+from ftp_downloader import FTPDownloader
 
 
-def main(csv_path: Path or str = typer.Argument(..., help="CSV filepath")):
+def main(csv_path: Union[Path, str] = typer.Argument(..., help="CSV filepath")):
     sync_info_df = pd.read_csv(csv_path)
     sync_info_df.fillna("", inplace=True)
 

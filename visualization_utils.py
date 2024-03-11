@@ -5,17 +5,18 @@ A visualization utility module
 Function list:
 - draw_contourf_map: A quite flexible function to draw a contour (choropleth) map
 """
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+import math
+from pathlib import Path
+from typing import Tuple
+
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.mpl.ticker import LatitudeFormatter, LongitudeFormatter
+import matplotlib.pyplot as plt
 import numpy as np
-import math
-from typing import Tuple
-from pathlib import Path
+from cartopy.mpl.ticker import LatitudeFormatter, LongitudeFormatter
 from cartopy.util import add_cyclic_point
+from matplotlib.figure import Figure
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def draw_contourf_map(
@@ -65,12 +66,8 @@ def draw_contourf_map(
         ymin, ymax = math.floor(lat.min()), math.ceil(lat.max())
 
     feature_kw_def = {
-        "COASTLINE": {
-            "linewidth": 0.25
-        },
-        "BORDERS": {
-            "linewidth": 0.25
-        },
+        "COASTLINE": {"linewidth": 0.25},
+        "BORDERS": {"linewidth": 0.25},
         "STATES": None,  # { "linewidth": 0.25 }
         "RIVERS": None,
         "LAKES": None,
@@ -93,29 +90,21 @@ def draw_contourf_map(
     # create figure and axes
     proj = ccrs.PlateCarree(central_longitude=central_longitude)
     fig, ax = plt.subplots(
-        subplot_kw={
-            "projection": proj,
-            "title": title
-        },
+        subplot_kw={"projection": proj, "title": title},
         **figure_kw_def,
     )
     # plot range and fatures
     ax.set_extent((xmin, xmax, ymin, ymax), ccrs.PlateCarree())
     if feature_kw_def["COASTLINE"] is not None:
-        ax.add_feature(cfeature.COASTLINE.with_scale("10m"),
-                       **feature_kw_def["COASTLINE"])
+        ax.add_feature(cfeature.COASTLINE.with_scale("10m"), **feature_kw_def["COASTLINE"])
     if feature_kw_def["BORDERS"] is not None:
-        ax.add_feature(cfeature.BORDERS.with_scale("10m"),
-                       **feature_kw_def["BORDERS"])
+        ax.add_feature(cfeature.BORDERS.with_scale("10m"), **feature_kw_def["BORDERS"])
     if feature_kw_def["STATES"] is not None:
-        ax.add_feature(cfeature.STATES.with_scale("10m"),
-                       **feature_kw_def["STATES"])
+        ax.add_feature(cfeature.STATES.with_scale("10m"), **feature_kw_def["STATES"])
     if feature_kw_def["RIVERS"] is not None:
-        ax.add_feature(cfeature.RIVERS.with_scale("10m"),
-                       **feature_kw_def["RIVERS"])
+        ax.add_feature(cfeature.RIVERS.with_scale("10m"), **feature_kw_def["RIVERS"])
     if feature_kw_def["LAKES"] is not None:
-        ax.add_feature(cfeature.LAKES.with_scale("10m"),
-                       **feature_kw_def["LAKES"])
+        ax.add_feature(cfeature.LAKES.with_scale("10m"), **feature_kw_def["LAKES"])
     # ticks and ticklabels
     ax.set_xticks(
         np.arange(xmin, xmax + 1, np.round((xmax + 1 - xmin) / 8)),
@@ -132,11 +121,7 @@ def draw_contourf_map(
     # contour(f)
     if add_cyclic_lons:
         data, lon = add_cyclic_point(data, coord=lon)
-    cf = ax.contourf(lon,
-                     lat,
-                     data,
-                     transform=ccrs.PlateCarree(),
-                     **contour_kw_def)
+    cf = ax.contourf(lon, lat, data, transform=ccrs.PlateCarree(), **contour_kw_def)
     # colorbar
     divider = make_axes_locatable(ax)
     cax = divider.new_horizontal(size="3.3%", pad=0.05, axes_class=plt.Axes)
